@@ -15,3 +15,20 @@ inoremap # X<C-H>#
 " Checks syntax of the file by compiling it.
 setlocal makeprg=python\ -c\ \"import\ py_compile,sys,tempfile;\ sys.stderr=sys.stdout;\ output=tempfile.NamedTemporaryFile();\ py_compile.compile(\'%\',output.name)\"
 setlocal efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
+
+python << EOF
+"""
+Adds all python modules to the path.
+
+You can use `gf` to jump to the file of the module under the cursor.
+"""
+
+import os
+import sys
+import vim
+
+for path in sys.path:
+    if os.path.isdir(path):
+        vim.command(r"set path+=" + path.replace(" ", r"\ "))
+EOF
+
