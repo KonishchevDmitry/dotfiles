@@ -67,6 +67,13 @@ function! GetPythonFold(lnum)
         return "s1"
     endif
 
+    " Support block comments
+    if line =~ '#.*\s\+-->\s*$'
+        return "a1"
+    elseif line =~ '#.*\s\+<--\s*$'
+        return "s1"
+    endif
+
     " Classes and functions get their own folds
     if line =~ '^\s*\(class\|def\)\s'
         return ">" . (ind / &sw + 1)
