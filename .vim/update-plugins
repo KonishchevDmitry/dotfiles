@@ -19,6 +19,7 @@
 cd "$script_dir"
 
 # Download spell files
+mkdir -p spell
 for lang in ru en; do
     for ext in spl sug; do
         wget -nv http://ftp.vim.org/vim/runtime/spell/$lang.utf-8.$ext -O spell/$lang.utf-8.$ext
