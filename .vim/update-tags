@@ -1,0 +1,34 @@
+#!/bin/sh -e
+#
+# Updates ctags for all system libraries
+#
+
+tags_dir=~/.vim/tags
+
+update() {
+    local lang="$1"
+    local extra_options=
+
+    mkdir -p "$tags_dir"
+
+    if [[ "$lang" == "c++" ]]; then
+        extra_options="$extra_options --$lang-kinds=+p --extra=+q"
+    fi
+
+    ctags -R --fields=+iaS --language-force=$lang $extra_options -f $tags_dir/$2 $3
+}
+
+#update c++ qt /usr/include/qt4
+#update python python /usr/lib/python2.6
+
+# Create tags for STL -->
+    tempdir=$(mktemp -d --tmpdir=/var/tmp)
+    trap "rm -rf $tempdir" INT TERM EXIT
+
+    (
+        git clone --depth 1 git://gcc.gnu.org/git/gcc.git "$tempdir"
+        cd "$tempdir/libstdc++-v3/include/bits"
+        sed -i -r 's/_GLIBCXX_[A-Z0-9_]+(\([^)]*\))?//' $(find -type f)
+        update c++ cpp-stl .
+    )
+# Create tags for STL <--
