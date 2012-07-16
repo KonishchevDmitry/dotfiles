@@ -3,8 +3,7 @@
 " Enable extended syntax highlighting
 let python_highlight_all = 1
 
-" Enable smart indenting
-setlocal smartindent
+" Configure smart indenting
 setlocal cinwords=if,elif,else,for,while,try,except,finally,def,class
 
 " Tune smart indent to prevent moving cursor to the beginning of the string
