@@ -36,7 +36,7 @@ setlocal formatoptions+=j
 
 " Highlight textwidth column
 highlight TextWidthColumn ctermbg=lightgray guibg=lightgray
-let w:TextWidthColumnMatch=matchadd('TextWidthColumn', '\%<79v.\%>78v', -1)
+let w:TextWidthColumnMatch=matchadd('TextWidthColumn', '\%<80v.\%>79v', -1)
 au BufWinEnter * let w:TextWidthColumnMatch=matchadd('TextWidthColumn', '\%<79v.\%>78v', -1)
 
 " Highlight trailing whitespace
