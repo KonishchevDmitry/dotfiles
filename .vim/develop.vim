@@ -1,4 +1,4 @@
-" General settings for all developer files.
+" General settings for all development files.
 
 
 " Show line numbers
@@ -30,8 +30,11 @@ setlocal formatoptions+=c
 " Do not auto-wrap text using textwidth
 setlocal formatoptions-=t
 
-" Where it makes sense, remove a comment leader when joining line
-setlocal formatoptions+=j
+" TODO: isn't supported on Mac?
+if !has("mac")
+    " Where it makes sense, remove a comment leader when joining line
+    setlocal formatoptions+=j
+endif
 
 
 " Highlight textwidth column
