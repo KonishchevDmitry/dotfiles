@@ -29,5 +29,5 @@ done
 # Update all plugins
 for plugin in pathogen bundle/*; do
     echo;echo "Updating $plugin..."
-    ( cd "$plugin" && git pull )
+    ( cd "$plugin" && git checkout master && git pull )
 done
