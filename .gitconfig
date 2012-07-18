@@ -1,0 +1,29 @@
+[core]
+    editor = vim
+[user]
+	name = Dmitry Konishchev
+	email = konishchev@gmail.com
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+	interactive = auto
+[alias]
+	br = branch
+	ci = commit -a
+	co = checkout
+	gr = grep -n --color --extended-regexp
+	me = merge --no-commit
+	mt = mergetool --no-prompt
+    pa = push --all
+    pt = push --tags
+	st = status
+[merge]
+	tool = meld
+[mergetool]
+    keepBackup = false
+    keepTemporaries = false
+[mergetool "meld"]
+    cmd = "meld $LOCAL $MERGED $REMOTE"
+[push]
+	default = current
