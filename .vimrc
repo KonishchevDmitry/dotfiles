@@ -346,33 +346,31 @@ endif
     menu Translate.Translate\ word<Tab><F9> :call TranslateWord()<CR>
 " Translating words with console version of StarDict <--
 
-
-" TODO: refactor
-" Задаем собственные функции для назначения имен заголовкам табов -->
+" Tab formatting -->
     function! MyTabLine()
         let tabline = ''
 
-        " Формируем tabline для каждой вкладки -->
+        " Format all the tabs -->
             for i in range(tabpagenr('$'))
-                " Подсвечиваем заголовок выбранной в данный момент вкладки.
+                " Highlight current tab
                 if i + 1 == tabpagenr()
                     let tabline .= '%#TabLineSel#'
                 else
                     let tabline .= '%#TabLine#'
                 endif
 
-                " Устанавливаем номер вкладки
+                " Tab number
                 let tabline .= '%' . (i + 1) . 'T'
 
-                " Получаем имя вкладки
+                " Tab name
                 let tabline .= '%{MyTabLabel(' . (i + 1) . ')}|'
             endfor
-        " Формируем tabline для каждой вкладки <--
+        " Format all the tabs <--
 
-        " Заполняем лишнее пространство
+        " Fill free space
         let tabline .= '%#TabLineFill#%T'
 
-        " Выровненная по правому краю кнопка закрытия вкладки
+        " Right aligned close button
         if tabpagenr('$') > 1
             let tabline .= '%=%#TabLine#%999XX'
         endif
@@ -384,26 +382,24 @@ endif
         let label = ''
         let buflist = tabpagebuflist(a:n)
 
-        " Имя файла и номер вкладки -->
+        " File name -->
             let label = substitute(bufname(buflist[tabpagewinnr(a:n) - 1]), '.*/', '', '')
 
             if label == ''
                 let label = '[No Name]'
             endif
+        " File name <--
 
-            "let label .= ' ' . a:n
-        " Имя файла и номер вкладки <--
+        " Tab number
+        "let label .= ' ' . a:n
 
-        " Определяем, есть ли во вкладке хотя бы один
-        " модифицированный буфер.
-        " -->
-            for i in range(len(buflist))
-                if getbufvar(buflist[i], "&modified")
-                    let label = '[+]' . label
-                    break
-                endif
-            endfor
-        " <--
+        " Highlight tab with unsaved changes
+        for i in range(len(buflist))
+            if getbufvar(buflist[i], "&modified")
+                let label = '[+]' . label
+                break
+            endif
+        endfor
 
         return label
     endfunction
@@ -414,48 +410,46 @@ endif
 
     set tabline=%!MyTabLine()
     set guitablabel=%!MyGuiTabLabel()
-" Задаем собственные функции для назначения имен заголовкам табов <--
+" Tab formatting <--
 
-
+" TODO: refactor
 " Восстановление позиции курсора при повторном открытии файла
 " -->
-    if has("autocmd")
-        " Восстанавливаем позицию курсора и фолдинги
-        set viewoptions=cursor,folds
+    " Восстанавливаем позицию курсора и фолдинги
+    set viewoptions=cursor,folds
 
-        "au BufWinLeave * mkview
-        "au BufWinEnter * silent loadview
+    "au BufWinLeave * mkview
+    "au BufWinEnter * silent loadview
 
-        "au BufUnload * mkview
-        "au BufReadPost * silent loadview
+    "au BufUnload * mkview
+    "au BufReadPost * silent loadview
 
-        au BufReadPost * call ReadFileView()
-        au BufUnload * call WriteFileView()
+    au BufReadPost * call ReadFileView()
+    au BufUnload * call WriteFileView()
 
-        function WriteFileView()
-            " qf - окно вывода make
-            if &filetype != "" && &filetype != "qf"
-                mkview
-            end
-        endfunction
+    function WriteFileView()
+        " qf - окно вывода make
+        if &filetype != "" && &filetype != "qf"
+            mkview
+        end
+    endfunction
 
-        function ReadFileView()
-            " qf - окно вывода make
-            if &filetype != "" && &filetype != "qf"
-                silent loadview
-            end
-        endfunction
+    function ReadFileView()
+        " qf - окно вывода make
+        if &filetype != "" && &filetype != "qf"
+            silent loadview
+        end
+    endfunction
 
-        " Данный код восстанавливает только позицию курсора
-        "	" When editing a file, always jump to the last known cursor position.
-        "	" Don't do it when the position is invalid or when inside an event
-        "	" handler (happens when dropping a file on gvim).
-        "	autocmd BufReadPost *
-        "		\ if line("'\"") > 0 && line("'\"") <= line("$") |
-        "		\ 	exe "normal g`\"" |
-        "		\ endif
-        "
-    endif
+    " Данный код восстанавливает только позицию курсора
+    "	" When editing a file, always jump to the last known cursor position.
+    "	" Don't do it when the position is invalid or when inside an event
+    "	" handler (happens when dropping a file on gvim).
+    "	autocmd BufReadPost *
+    "		\ if line("'\"") > 0 && line("'\"") <= line("$") |
+    "		\ 	exe "normal g`\"" |
+    "		\ endif
+    "
 " <--
 
 
