@@ -1,69 +1,22 @@
 " Vim IDE configuration file
-" TODO: refactor
-
-" Загружаем ранее сохраненную сессию -->
-	" Запрещаем восстановление настроек из сессии, т. к. тогда при изменении
-	" ~/.vimrc даже после перезагрузки IDE новые настройки не будут вступать в
-	" силу.
-	set sessionoptions-=options,winsize
-
-    if getfsize(".vim/ide.session") >= 0
-        source .vim/ide.session
-    endif
-" Загружаем ранее сохраненную сессию <--
-
-" Обновляем тэги при каждом сохранении файла
-"au BufWritePost * call {MyUpdateCtagsFunction}()
 
 
-" При закрытии Vim'а сохраняем информацию о текущей сессии
+" Load project configuration
+if filereadable(".vim/ide.vim")
+    source .vim/ide.vim
+endif
+
+" Do not restore settings from the session to not override settings from
+" .vimrc file
+set sessionoptions-=options,winsize
+
+" Restore saved session
+if getfsize(".vim/ide.session") >= 0
+    source .vim/ide.session
+endif
+
+" Save the session on exit
 au VimLeave * :mksession! .vim/ide.session
-
-    " ctags updating -->
-        let g:ctags_sources_dirs = "."
-
-        function! MyUpdateCtags()
-            let l:cmd = "silent !ctags -R --c++-kinds=+pl --fields=+iaS --extra=+q " . g:ctags_sources_dirs
-            exe cmd
-            let l:cmd = "silent !find " . g:ctags_sources_dirs . " -name '*.c' -o -name '*.h' -o -name '*.cpp' -o -name '*.cxx' -o -name '*.c++' -o -name '*.hpp' -o -name '*.hxx' -o -name '*.h++' > cscope.files"
-            exe cmd
-            let l:cmd = "silent !cscope -b"
-            exe cmd
-            :silent cscope reset
-        endfunction
-
-        let MyUpdateCtagsFunction = "MyUpdateCtags"
-        nmap <F11> :call {MyUpdateCtagsFunction}()<CR>
-
-        menu ctags.Update<Tab><F11> <F11>
-    " ctags updating <--
-
-
-" Устанавливает правила синтаксиса, специфичные для данного проекта.
-" -->
-"    function! MySetIdeSyntax()
-"        if getfsize(".vim/syntax.vim") >= 0
-"            source .vim/syntax.vim
-"        endif
-"    endfunction
-" <--
-
-" Настраиваем работу с ctags -->
-"    set tags=.vim/ctags
-"
-"    function! MyUpdateIdeCtags()
-"        !make vim
-"    endfunction
-"
-"    let MyUpdateCtagsFunction = "MyUpdateIdeCtags"
-" Настраиваем работу с ctags <--
-
-" Обновляем базу ctags при старте IDE
-"call {MyUpdateCtagsFunction}()
-
-" При открытии нового буфера устанавливаем для него
-" правила синтаксиса, специфичные для данного проекта.
-"au BufReadPost * :call MySetIdeSyntax()
 
 
 python << EOF
@@ -99,3 +52,72 @@ for module_path in module_paths:
 for path in paths:
     vim.command("set path+=" + path.replace(" ", r"\ "))
 EOF
+
+
+" ctags -->
+function MyHandleCtags(action)
+python << EOF
+    """
+    Configures ctags for the current buffer depending on its file type.
+    """
+
+    import os
+    import subprocess
+    import vim
+
+    # File that is being edited
+    file_path = vim.current.buffer.name
+
+    # Supported languages
+    languages = [{
+        "name":       "cpp",
+        "extensions": [ ".c", ".h", ".cpp", ".cxx", ".c++", ".hpp", ".hxx", ".h++" ],
+    }]
+
+
+    def update_ctags(language):
+        """Updates ctags for the specified language."""
+
+        find_command = [ "find" ]
+        for id, extension in enumerate(language["extensions"]):
+            if id: find_command += [ "-o" ]
+            find_command += [ "-name", "*" + extension ]
+
+        ctags_command = [ "ctags" ]
+        if language["name"] == "cpp":
+            ctags_command += [ "--c-kinds=+pl", "--c++-kinds=+pl", "--fields=+iaS", "--extra=+q" ]
+        ctags_command += [ "-L", "-", "-f", ".vim/{0}.tags".format(language["name"]) ]
+
+
+        find_process = None
+        ctags_process = None
+
+        try:
+            find_process = subprocess.Popen(find_command, stdout = subprocess.PIPE)
+            ctags_process = subprocess.Popen(ctags_command, stdin = find_process.stdout)
+        finally:
+            if find_process is not None:
+                find_process.wait()
+
+            if ctags_process is not None:
+                ctags_process.wait()
+
+
+    if vim.eval("a:action") == "on-read":
+        for language in languages:
+            if os.path.splitext(file_path)[1] in language["extensions"]:
+                vim.command("setlocal tags+=.vim/{language}.tags".format(
+                    language = language["name"]))
+                break
+    elif vim.eval("a:action") == "on-write":
+        if file_path.startswith(os.getcwd()):
+            for language in languages:
+                if os.path.splitext(file_path)[1] in language["extensions"]:
+                    update_ctags(language)
+                    break
+EOF
+endfunction
+
+au BufRead * call MyHandleCtags("on-read")
+au BufWritePost * call MyHandleCtags("on-write")
+" ctags <--
