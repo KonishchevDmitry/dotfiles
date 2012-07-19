@@ -131,10 +131,10 @@ map <F2> :emenu <C-Z>
     " Cursor movement in the insert mode <--
 
     " Search the selected text -->
-        vnoremap <silent> * :call VisualSearch('f')<CR>
-        vnoremap <silent> # :call VisualSearch('b')<CR>
+        vnoremap <silent> * :call MyVisualSearch('f')<CR>
+        vnoremap <silent> # :call MyVisualSearch('b')<CR>
 
-        function! VisualSearch(direction) range
+        function VisualSearch(direction) range
             let l:saved_reg = @"
             execute "normal! vgvy"
 
@@ -237,7 +237,7 @@ endif
         menu Spell.Previous\ Wrong\ Word<Tab>[s [s
         menu Spell.Next\ Wrong\ Word<Tab>]s ]s
 
-        function ToggleSpellCheck()
+        function MyToggleSpellCheck()
             if &spelllang == ""
                 setlocal spell
                 setlocal spelllang=ru,en
@@ -250,12 +250,12 @@ endif
         endfunc
 
         " Toggle spell checking hotkey
-        nmap <F10> :call ToggleSpellCheck()<CR>
+        nmap <F10> :call MyToggleSpellCheck()<CR>
     endif
 " Spell checking <--
 
 " Wrapper for :make -->
-    function! MyMake()
+    function MyMake()
         " Do not open new tabs for *.py files - just compile the current
         " file.
         if &filetype == "python"
@@ -326,7 +326,7 @@ endif
 
 " TODO
 " Translating words with console version of StarDict -->
-    function! TranslateWord()
+    function MyTranslateWord()
         let s:dict    = "sdcv"
         let s:phrase  = expand("<cword>")
         let s:tmpfile = tempname()
@@ -342,12 +342,12 @@ endif
         end
     endfun
 
-    map <F9> :call TranslateWord()<CR>
-    menu Translate.Translate\ word<Tab><F9> :call TranslateWord()<CR>
+    map <F9> :call MyTranslateWord()<CR>
+    menu Translate.Translate\ word<Tab><F9> :call MyTranslateWord()<CR>
 " Translating words with console version of StarDict <--
 
 " Tab formatting -->
-    function! MyTabLine()
+    function MyTabLine()
         let tabline = ''
 
         " Format all the tabs -->
@@ -378,7 +378,7 @@ endif
         return tabline
     endfunction
 
-    function! MyTabLabel(n)
+    function MyTabLabel(n)
         let label = ''
         let buflist = tabpagebuflist(a:n)
 
@@ -404,7 +404,7 @@ endif
         return label
     endfunction
 
-    function! MyGuiTabLabel()
+    function MyGuiTabLabel()
         return '%{MyTabLabel(' . tabpagenr() . ')}'
     endfunction
 
@@ -412,72 +412,36 @@ endif
     set guitablabel=%!MyGuiTabLabel()
 " Tab formatting <--
 
-" TODO: refactor
-" Восстановление позиции курсора при повторном открытии файла
-" -->
-    " Восстанавливаем позицию курсора и фолдинги
+" Restore buffer state when opening a file that was opened before -->
+    " Restore cursor position and foldings
     set viewoptions=cursor,folds
 
-    "au BufWinLeave * mkview
-    "au BufWinEnter * silent loadview
+    au BufReadPost * call MyLoadView()
+    au BufUnload * call MyWriteView()
 
-    "au BufUnload * mkview
-    "au BufReadPost * silent loadview
-
-    au BufReadPost * call ReadFileView()
-    au BufUnload * call WriteFileView()
-
-    function WriteFileView()
-        " qf - окно вывода make
-        if &filetype != "" && &filetype != "qf"
-            mkview
-        end
-    endfunction
-
-    function ReadFileView()
-        " qf - окно вывода make
+    function MyLoadView()
+        " 'qf' is a make output window
         if &filetype != "" && &filetype != "qf"
             silent loadview
         end
     endfunction
 
-    " Данный код восстанавливает только позицию курсора
-    "	" When editing a file, always jump to the last known cursor position.
-    "	" Don't do it when the position is invalid or when inside an event
-    "	" handler (happens when dropping a file on gvim).
-    "	autocmd BufReadPost *
-    "		\ if line("'\"") > 0 && line("'\"") <= line("$") |
-    "		\ 	exe "normal g`\"" |
-    "		\ endif
-    "
-" <--
+    function MyWriteView()
+        " 'qf' is a make output window
+        if &filetype != "" && &filetype != "qf"
+            mkview
+        end
+    endfunction
+" Restore buffer state when opening a file that was opened before <--
 
-
-" Полное восстановление позиции курсора при переключении между
-" буферами (включая колонку и скроллинг окна)
+" Full restoring of cursor position when switching between buffers, incuding
+" column and window scrolling.
 " -->
-    autocmd BufEnter * call MyRestoreCursorPosition("restore")
-    autocmd BufLeave * call MyRestoreCursorPosition("save")
+    autocmd BufEnter * call MyRestoreCursorPosition()
+    autocmd BufLeave * call MySaveCursorPosition()
 
-    function MyRestoreCursorPosition(action)
-        if a:action == "save"
-            let b:saveve = &virtualedit
-            let b:savesiso = &sidescrolloff
-
-            set virtualedit=all
-            set sidescrolloff=0
-            let b:curline = line(".")
-            let b:curvcol = virtcol(".")
-            let b:curwcol = wincol()
-            normal! g0
-            let b:algvcol = virtcol(".") - 1
-            normal! M
-            let b:midline = line(".")
-            execute "normal! ".b:curline."G".b:curvcol."|"
-
-            let &virtualedit = b:saveve
-            let &sidescrolloff = b:savesiso
-        elseif a:action == "restore" && exists("b:curline")
+    function MyRestoreCursorPosition()
+        if exists("b:curline")
             let b:saveve = &virtualedit
             let b:savesiso = &sidescrolloff
 
@@ -498,12 +462,30 @@ endif
             let &sidescrolloff = b:savesiso
             unlet b:saveve b:savesiso b:curline b:curvcol b:curwcol b:algvcol b:midline
         endif
+    endfunction
 
-        return ""
+    function MySaveCursorPosition()
+        let b:saveve = &virtualedit
+        let b:savesiso = &sidescrolloff
+
+        set virtualedit=all
+        set sidescrolloff=0
+        let b:curline = line(".")
+        let b:curvcol = virtcol(".")
+        let b:curwcol = wincol()
+        normal! g0
+        let b:algvcol = virtcol(".") - 1
+        normal! M
+        let b:midline = line(".")
+        execute "normal! ".b:curline."G".b:curvcol."|"
+
+        let &virtualedit = b:saveve
+        let &sidescrolloff = b:savesiso
     endfunction
 " <--
 
 
+" TODO: refactor
 " Переключение между заголовочными файлами и
 " файлами с исходным кодом.
 " -->
@@ -616,14 +598,14 @@ endif
 "vnoremap <A-S-DOWN> <ESC>:tabmove<CR>
 "
 "" переместить вкладку назад
-"nnoremap <silent><A-S-LEFT> :call TabMove('left')<CR>
-"inoremap <silent><A-S-LEFT> <C-O>:call TabMove('left')<CR>
-"vnoremap <silent><A-S-LEFT> <ESC>:call TabMove('left')<CR>
+"nnoremap <silent><A-UP> :call TabMove('left')<CR>
+"inoremap <silent><A-UP> <C-O>:call TabMove('left')<CR>
+"vnoremap <silent><A-UP> <ESC>:call TabMove('left')<CR>
 "
 "" переместить вкладку вперёд
-"nnoremap <silent><A-S-RIGHT> :call TabMove('right')<CR>
-"inoremap <silent><A-S-RIGHT> <C-O>:call TabMove('right')<CR>
-"vnoremap <silent><A-S-RIGHT> <ESC>:call TabMove('right')<CR>
+"nnoremap <silent><A-DOWN> :call TabMove('right')<CR>
+"inoremap <silent><A-DOWN> <C-O>:call TabMove('right')<CR>
+"vnoremap <silent><A-DOWN> <ESC>:call TabMove('right')<CR>
 "
 "" передвигаемся по вкладкам
 "function! TabJump(direction)
