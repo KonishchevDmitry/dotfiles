@@ -557,85 +557,57 @@ endif
     endfunction
 " <--
 
+" Tab management -->
+    function TabJump(direction)
+        let l:tablen = tabpagenr('$')
+        let l:tabcur = tabpagenr()
 
-" Далее идут настройки, которые в данный момент не используются, но могут
-" пригодиться потом
-"
-"
-"" новая вкладка
-"nnoremap <C-T> :tabnew<CR>
-"inoremap <C-T> <C-O>:tabnew<CR>
-"vnoremap <C-T> <ESC>:tabnew<CR>
-"
-"" предыдущая вкладка
-"nnoremap <silent><A-LEFT> :call TabJump('left')<CR>
-"inoremap <silent><A-LEFT> <C-O>:call TabJump('left')<CR>
-"vnoremap <silent><A-LEFT> <ESC>:call TabJump('left')<CR>
-"
-"" следующая вкладка
-"nnoremap <silent><A-RIGHT> :call TabJump('right')<CR>
-"inoremap <silent><A-RIGHT> <C-O>:call TabJump('right')<CR>
-"vnoremap <silent><A-RIGHT> <ESC>:call TabJump('right')<CR>
-"
-"" первая вкладка
-"nnoremap <A-UP> :tabfirst<CR>
-"inoremap <A-UP> <C-O>:tabfirst<CR>
-"vnoremap <A-UP> <ESC>:tabfirst<CR>
-"
-"" последняя вкладка
-"nnoremap <A-DOWN> :tablast<CR>
-"inoremap <A-DOWN> <C-O>:tablast<CR>
-"vnoremap <A-DOWN> <ESC>:tablast<CR>
-"
-"" переместить вкладку в начало
-"nnoremap <A-S-UP> :tabmove 0<CR>
-"inoremap <A-S-UP> <C-O>:tabmove 0<CR>
-"vnoremap <A-S-UP> <ESC>:tabmove 0<CR>
-"
-"" переместить вкладку в конец
-"nnoremap <A-S-DOWN> :tabmove<CR>
-"inoremap <A-S-DOWN> <C-O>:tabmove<CR>
-"vnoremap <A-S-DOWN> <ESC>:tabmove<CR>
-"
-"" переместить вкладку назад
-"nnoremap <silent><A-UP> :call TabMove('left')<CR>
-"inoremap <silent><A-UP> <C-O>:call TabMove('left')<CR>
-"vnoremap <silent><A-UP> <ESC>:call TabMove('left')<CR>
-"
-"" переместить вкладку вперёд
-"nnoremap <silent><A-DOWN> :call TabMove('right')<CR>
-"inoremap <silent><A-DOWN> <C-O>:call TabMove('right')<CR>
-"vnoremap <silent><A-DOWN> <ESC>:call TabMove('right')<CR>
-"
-"" передвигаемся по вкладкам
-"function! TabJump(direction)
-"    let l:tablen=tabpagenr('$')
-"    let l:tabcur=tabpagenr()
-"    if a:direction=='left'
-"        if l:tabcur>1
-"            execute 'tabprevious'
-"        endif
-"    else
-"        if l:tabcur!=l:tablen
-"            execute 'tabnext'
-"        endif
-"    endif
-"endfunction
-"
-"" передвигаем вкладки
-"function! TabMove(direction)
-"    let l:tablen=tabpagenr('$')
-"    let l:tabcur=tabpagenr()
-"    if a:direction=='left'
-"        if l:tabcur>1
-"            execute 'tabmove' l:tabcur-2
-"        endif
-"    else
-"        if l:tabcur!=l:tablen
-"            execute 'tabmove' l:tabcur
-"        endif
-"    endif
-"endfunction
+        if a:direction=='left'
+            if l:tabcur > 1
+                execute 'tabprevious'
+            endif
+        else
+            if l:tabcur != l:tablen
+                execute 'tabnext'
+            endif
+        endif
+    endfunction
+
+    function TabMove(direction)
+        let l:tablen = tabpagenr('$')
+        let l:tabcur = tabpagenr()
+
+        if a:direction == 'left'
+            if l:tabcur > 1
+                execute 'tabmove' l:tabcur-2
+            endif
+        else
+            if l:tabcur != l:tablen
+                execute 'tabmove' l:tabcur
+            endif
+        endif
+    endfunction
+
+    " Previous tab
+    nnoremap <silent><A-UP> :call TabJump("left")<CR>
+    inoremap <silent><A-UP> <C-O>:call TabJump("left")<CR>
+    vnoremap <silent><A-UP> <ESC>:call TabJump("left")<CR>
+
+    " Next tab
+    nnoremap <silent><A-DOWN> :call TabJump("right")<CR>
+    inoremap <silent><A-DOWN> <C-O>:call TabJump("right")<CR>
+    vnoremap <silent><A-DOWN> <ESC>:call TabJump("right")<CR>
+
+    " Move current tab backwards
+    nnoremap <silent><A-S-UP> :call TabMove("left")<CR>
+    inoremap <silent><A-S-UP> <C-O>:call TabMove("left")<CR>
+    vnoremap <silent><A-S-UP> <ESC>:call TabMove("left")<CR>
+
+    " Move current tab forward
+    nnoremap <silent><A-S-DOWN> :call TabMove("right")<CR>
+    inoremap <silent><A-S-DOWN> <C-O>:call TabMove("right")<CR>
+    vnoremap <silent><A-S-DOWN> <ESC>:call TabMove("right")<CR>
+" Tab management <--
 
 
 
