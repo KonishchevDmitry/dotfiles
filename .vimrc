@@ -185,6 +185,7 @@ map <F2> :emenu <C-Z>
     imap <PageDown> <C-O><C-D><C-O><C-D>
 " Hotkeys <--
 
+
 " Keyboard layout switching -->
 if has("keymap")
     " Keyboard mapping to switch to on <C-^>
@@ -218,6 +219,7 @@ if has("keymap")
     vmap <silent> <C-F> <Esc>a<C-^><Esc>:call MyKeyMapHighlight()<CR>gv
 endif
 " Keyboard layout switching <--
+
 
 " Spell checking -->
     if version >= 700
@@ -253,6 +255,7 @@ endif
         nmap <F10> :call MyToggleSpellCheck()<CR>
     endif
 " Spell checking <--
+
 
 " Wrapper for :make -->
     function MyMake()
@@ -305,6 +308,7 @@ endif
     nmap ,l :clist<CR>
 " Wrapper for :make <--
 
+
 " File encoding menu -->
     " File encoding to read
     menu Encoding.Read.UTF-8 :e ++enc=utf8<CR>
@@ -323,6 +327,7 @@ endif
     menu Encoding.End\ of\ line\ format.DOS :set fileformat=dos<CR>
     menu Encoding.End\ of\ line\ format.Mac :set fileformat=mac<CR>
 " File encoding menu <--
+
 
 " TODO
 " Translating words with console version of StarDict -->
@@ -345,6 +350,7 @@ endif
     map <F9> :call MyTranslateWord()<CR>
     menu Translate.Translate\ word<Tab><F9> :call MyTranslateWord()<CR>
 " Translating words with console version of StarDict <--
+
 
 " Tab formatting -->
     function MyTabLine()
@@ -412,6 +418,7 @@ endif
     set guitablabel=%!MyGuiTabLabel()
 " Tab formatting <--
 
+
 " Restore buffer state when opening a file that was opened before -->
     " Restore cursor position and foldings
     set viewoptions=cursor,folds
@@ -433,6 +440,7 @@ endif
         end
     endfunction
 " Restore buffer state when opening a file that was opened before <--
+
 
 " Full restoring of cursor position when switching between buffers, incuding
 " column and window scrolling.
