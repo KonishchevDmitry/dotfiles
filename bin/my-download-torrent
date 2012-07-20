@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# Downloads the specified torrent(s)
+#
+
+for torrent in "$@"; do
+    mv "$torrent" ~/Dropbox/Torrents/$(uuidgen).torrent
+done
