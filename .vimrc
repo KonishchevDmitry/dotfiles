@@ -609,13 +609,6 @@ endif
 " Tab management <--
 
 
-
-
-" TODO
-"set tags += ~/.vim/tags/std_cpp
-
-" Done
-
 " OmniCppComplete -->
     " Enable global scope search
     let OmniCpp_GlobalScopeSearch = 1

@@ -30,9 +30,8 @@ setlocal formatoptions+=c
 " Do not auto-wrap text using textwidth
 setlocal formatoptions-=t
 
-" TODO: isn't supported on Mac?
 if !has("mac")
-    " Where it makes sense, remove a comment leader when joining line
+    " Where it makes sense, remove a comment leader when joining a line
     setlocal formatoptions+=j
 endif
 
@@ -46,3 +45,9 @@ au BufWinEnter * let w:TextWidthColumnMatch=matchadd('TextWidthColumn', '\%<79v.
 highlight TrailingWhitespace ctermbg=lightgray guibg=lightgray
 let w:TrailingWhitespace=matchadd('TrailingWhitespace', '\s\+$', -1)
 au BufWinEnter * let w:TrailingWhitespace=matchadd('TrailingWhitespace', '\s\+$', -1)
+
+
+" C++ tags
+if &filetype == "cpp"
+    setlocal tags+=~/.vim/tags/cpp-stl
+end
