@@ -30,10 +30,9 @@ setlocal formatoptions+=c
 " Do not auto-wrap text using textwidth
 setlocal formatoptions-=t
 
-if !has("mac")
-    " Where it makes sense, remove a comment leader when joining a line
-    setlocal formatoptions+=j
-endif
+" TODO: doesn't work everywhere
+" Where it makes sense, remove a comment leader when joining a line
+"setlocal formatoptions+=j
 
 
 " Highlight textwidth column
