@@ -329,7 +329,6 @@ endif
 " File encoding menu <--
 
 
-" TODO
 " Translating words with console version of StarDict -->
     function MyTranslateWord()
         let s:dict    = "sdcv"
@@ -347,7 +346,7 @@ endif
         end
     endfun
 
-    map <F9> :call MyTranslateWord()<CR>
+    map <silent> <F9> :call MyTranslateWord()<CR>
     menu Translate.Translate\ word<Tab><F9> :call MyTranslateWord()<CR>
 " Translating words with console version of StarDict <--
 
@@ -493,38 +492,22 @@ endif
 " <--
 
 
-" TODO: refactor
-" Переключение между заголовочными файлами и
-" файлами с исходным кодом.
-" -->
-    "	Соответственно:
-    "	,s - переключение на исходный код
-    "	,S - тоже самое, только открыть в новом окне
-    "	,h - переключение на заголовочный файл
-    "	,H - тоже самое, только открыть в новом окне
-
-    nmap ,f :call MySwitchToForwardsHeader()<CR>
-    nmap ,F :call MySwitchToForwardsHeaderInNewWindow()<CR>
-    nmap ,h :call MySwitchToHeader()<CR>
-    nmap ,H :call MySwitchToHeaderInNewWindow()<CR>
-    nmap ,s :call MySwitchToSource()<CR>
-    nmap ,S :call MySwitchToSourceInNewWindow()<CR>
-
-    function! MySwitchToForwardsHeader()
+" Switching between header and source file -->
+    function MySwitchToForwardsHeader()
         if &filetype == "cpp"
             find %:t:r.hxx
             return
         end
     endfunction
 
-    function! MySwitchToForwardsHeaderInNewWindow()
+    function MySwitchToForwardsHeaderInNewWindow()
         if &filetype == "cpp"
             sf %:t:r.hxx
             return
         end
     endfunction
 
-    function! MySwitchToHeader()
+    function MySwitchToHeader()
         if &filetype == "c"
             find %:t:r.h
             return
@@ -534,7 +517,7 @@ endif
         end
     endfunction
 
-    function! MySwitchToHeaderInNewWindow()
+    function MySwitchToHeaderInNewWindow()
         if &filetype == "c"
             sf %:t:r.h
             return
@@ -544,7 +527,7 @@ endif
         end
     endfunction
 
-    function! MySwitchToSource()
+    function MySwitchToSource()
         if &filetype == "ch"
             find %:t:r.c
             return
@@ -554,7 +537,7 @@ endif
         end
     endfunction
 
-    function! MySwitchToSourceInNewWindow()
+    function MySwitchToSourceInNewWindow()
         if &filetype == "ch"
             sf %:t:r.c<CR>
             return
@@ -563,7 +546,15 @@ endif
             return
         end
     endfunction
-" <--
+
+    nmap ,f :call MySwitchToForwardsHeader()<CR>
+    nmap ,F :call MySwitchToForwardsHeaderInNewWindow()<CR>
+    nmap ,h :call MySwitchToHeader()<CR>
+    nmap ,H :call MySwitchToHeaderInNewWindow()<CR>
+    nmap ,s :call MySwitchToSource()<CR>
+    nmap ,S :call MySwitchToSourceInNewWindow()<CR>
+" Switching between header and source file <--
+
 
 " Tab management -->
     function TabJump(direction)
