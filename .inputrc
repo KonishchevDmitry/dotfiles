@@ -1,0 +1,17 @@
+# Include system inputrc
+$include /etc/inputrc
+
+# Use visible bell
+set bell-style visible
+
+# Max number of completions to show without a warning
+set completion-query-items 50
+
+# Completed names which are symbolic links to directories have a slash appended
+set mark-symlinked-directories on
+
+# Search history with C-N/C-P/Up/Down using currently typed command
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+"\C-p": history-search-backward
+"\C-n": history-search-forward
