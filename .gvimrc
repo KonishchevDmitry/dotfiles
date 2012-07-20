@@ -11,10 +11,6 @@ else
     set guifont=Ubuntu\ Mono\ 12
 endif
 
-" TODO
-" Enable spell checking by default
-set spell spelllang=ru,en
-
 
 " Disable toolbar
 set guioptions-=T

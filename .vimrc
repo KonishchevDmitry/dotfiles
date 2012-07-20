@@ -222,38 +222,38 @@ endif
 
 
 " Spell checking -->
-    if version >= 700
-        " TODO: more sexy highliting in console mode
-        " Spell checking is off by default
-        set spell spelllang=
-        set nospell
+    " Tune syntax highlighting
+    hi clear SpellBad
+    hi SpellBad cterm=underline guisp=undercurl
 
-        menu Spell.Off :set spelllang=<CR>:set nospell<CR>
-        menu Spell.On :set spell spelllang=ru,en<CR>
-        menu Spell.-SpellControl- :
-        menu Spell.Word\ Suggest<Tab>z= z=
-        menu Spell.Add\ To\ Dictionary<Tab>zg zg
-        menu Spell.Add\ To\ TemporaryDictionary<Tab>zG zG
-        menu Spell.Remove\ From\ Dictionary<Tab>zw zw
-        menu Spell.Remove\ From\ Temporary\ Dictionary<Tab>zW zW
-        menu Spell.Previous\ Wrong\ Word<Tab>[s [s
-        menu Spell.Next\ Wrong\ Word<Tab>]s ]s
+    " Enable spell checking by default
+    set spell spelllang=ru,en
 
-        function MyToggleSpellCheck()
-            if &spelllang == ""
-                setlocal spell
-                setlocal spelllang=ru,en
-                echo "Spelllang: ru,en"
-            else
-                setlocal spelllang=
-                setlocal nospell
-                echo "Spelllang: off"
-            endif
-        endfunc
+    menu Spell.Off :set spelllang=<CR>:set nospell<CR>
+    menu Spell.On :set spell spelllang=ru,en<CR>
+    menu Spell.-SpellControl- :
+    menu Spell.Word\ Suggest<Tab>z= z=
+    menu Spell.Add\ To\ Dictionary<Tab>zg zg
+    menu Spell.Add\ To\ TemporaryDictionary<Tab>zG zG
+    menu Spell.Remove\ From\ Dictionary<Tab>zw zw
+    menu Spell.Remove\ From\ Temporary\ Dictionary<Tab>zW zW
+    menu Spell.Previous\ Wrong\ Word<Tab>[s [s
+    menu Spell.Next\ Wrong\ Word<Tab>]s ]s
 
-        " Toggle spell checking hotkey
-        nmap <F10> :call MyToggleSpellCheck()<CR>
-    endif
+    function MyToggleSpellCheck()
+        if &spelllang == ""
+            setlocal spell
+            setlocal spelllang=ru,en
+            echo "Spelllang: ru,en"
+        else
+            setlocal spelllang=
+            setlocal nospell
+            echo "Spelllang: off"
+        endif
+    endfunc
+
+    " Toggle spell checking hotkey
+    nmap <silent> <F10> :call MyToggleSpellCheck()<CR>
 " Spell checking <--
 
 
