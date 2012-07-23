@@ -50,3 +50,8 @@ au BufWinEnter * let w:TrailingWhitespace=matchadd('TrailingWhitespace', '\s\+$'
 if &filetype == "cpp"
     setlocal tags+=~/.vim/tags/cpp-stl
 end
+
+" Smart indenting works bad with shell scripts
+if &filetype == "sh"
+    set nosmartindent
+end
