@@ -1,3 +1,6 @@
+# Source global definitions
+[ -f /etc/bashrc ] && . /etc/bashrc
+
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
 
@@ -29,7 +32,7 @@ shopt -s checkwinsize
 
 # Set up email checking
 if [ "$UID" -eq 0 ]; then
-    export MAIL_PATH=/var/mail/$USER
+    MAIL_PATH=/var/mail/$USER
     shopt -s mailwarn
 else
     shopt -u mailwarn
@@ -39,14 +42,21 @@ fi
 shopt -s extglob
 
 # Patterns which match no files expands to a null string, rather than
-# themselves
-shopt -s nullglob
+# themselves.
+#
+# Sadly, doesn't work well on all distros in interactive mode. :(
+#shopt -s nullglob
 
 # Append to the history file, don't overwrite it
 shopt -s histappend
 
 # Write history every time bash shows the prompt
-export PROMPT_COMMAND="history -a;"
+if ! echo "$PROMPT_COMMAND" | grep -qF 'history -a'; then
+    if echo "$PROMPT_COMMAND" | egrep -q ';[[:space:]]*$'; then
+        PROMPT_COMMAND+="; "
+    fi
+    PROMPT_COMMAND+="history -a;"
+fi
 
 # Автоматическое исправление ошибок в именах каталогов при выполнении команды cd
 shopt -s cdspell
@@ -59,16 +69,16 @@ shopt -s cmdhist
 for hist_option in ignoredups ignorespace; do
     if ! echo "$HISTCONTROL" | grep -q "$hist_option"; then
         if [ "$HISTCONTROL" == "" ]; then
-            export HISTCONTROL="$hist_option"
+            HISTCONTROL="$hist_option"
         else
-            export HISTCONTROL="$HISTCONTROL:$hist_option"
+            HISTCONTROL="$HISTCONTROL:$hist_option"
         fi
     fi
 done
 unset hist_option
 
 # Do not write the following commands to the history
-export HISTIGNORE="cd"
+HISTIGNORE="cd"
 
 
 # Command line prompt -->
@@ -99,6 +109,13 @@ if [ -f /etc/debian_version ]; then
     export DEBEMAIL='konishchev@gmail.com'
     export DEBFULLNAME='Dmitry Konishchev'
 fi
+
+
+# Setting up text editor
+export EDITOR=vim
+
+# Python: don't write .py[co] files on import
+export PYTHONDONTWRITEBYTECODE=yes
 
 
 # Include custom settings
