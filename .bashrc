@@ -87,11 +87,11 @@ HISTIGNORE="cd"
     PS1+='\$ '
     PS2='> '
 
-    PS1="$(tput bold)$PS1$(tput sgr0)"
-    PS2="$(tput bold)$PS2$(tput sgr0)"
+    PS1="\[\033[01m\]$PS1\[\033[00m\]"
+    PS2="\[\033[01m\]$PS2\[\033[00m\]"
     if [ "$UID" -eq 0 ]; then
-        PS1="$(tput setaf 1)$PS1"
-        PS2="$(tput setaf 1)$PS2"
+        PS1="\[\033[31m\]$PS1"
+        PS2="\[\033[31m\]$PS2"
     fi
 # Command line prompt <--
 
