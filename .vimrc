@@ -224,7 +224,13 @@ endif
 " Spell checking -->
     " Tune syntax highlighting
     hi clear SpellBad
-    hi SpellBad cterm=underline guisp=undercurl
+
+    " MacVim complains about undercurl in console mode
+    if has("gui_running")
+        hi SpellBad cterm=underline guisp=undercurl
+    else
+        hi SpellBad cterm=underline
+    endif
 
     " Enable spell checking by default
     set spell spelllang=ru,en
