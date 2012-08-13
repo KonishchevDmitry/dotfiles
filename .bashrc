@@ -112,7 +112,7 @@ fi
 
 
 # Setting up text editor
-export EDITOR=vim
+export EDITOR=/usr/bin/vim
 
 # Python: don't write .py[co] files on import
 export PYTHONDONTWRITEBYTECODE=yes
