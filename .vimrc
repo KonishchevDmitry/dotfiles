@@ -48,9 +48,6 @@ set expandtab
 " Копирует отступ от предыдущей строки
 set autoindent
 
-" Do smart autoindenting when starting a new line
-set smartindent
-
 
 " Enable syntax highlighting
 syntax on
