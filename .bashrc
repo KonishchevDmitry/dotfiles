@@ -52,10 +52,7 @@ shopt -s histappend
 
 # Write history every time bash shows the prompt
 if ! echo "$PROMPT_COMMAND" | grep -qF 'history -a'; then
-    if echo "$PROMPT_COMMAND" | egrep -q ';[[:space:]]*$'; then
-        PROMPT_COMMAND+="; "
-    fi
-    PROMPT_COMMAND+="history -a;"
+    PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 fi
 
 # Автоматическое исправление ошибок в именах каталогов при выполнении команды cd
@@ -112,7 +109,7 @@ fi
 
 
 # Setting up text editor
-export EDITOR=vim
+export EDITOR=/usr/bin/vim
 
 # Python: don't write .py[co] files on import
 export PYTHONDONTWRITEBYTECODE=yes
