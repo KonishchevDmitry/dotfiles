@@ -18,7 +18,8 @@ setlocal list listchars=tab:·\ ,trail:·
 setlocal foldmethod=syntax
 
 " Default folding level for opened files
-setlocal foldlevelstart=0
+setlocal foldlevelstart=9999
+setlocal foldlevel=9999
 
 
 " Maximum width of text that is being inserted
