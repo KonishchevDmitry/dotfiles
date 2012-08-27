@@ -567,10 +567,14 @@ endif
         if a:direction=='left'
             if l:tabcur > 1
                 execute 'tabprevious'
+            else
+                execute 'tablast'
             endif
         else
             if l:tabcur != l:tablen
                 execute 'tabnext'
+            else
+                execute 'tabfirst'
             endif
         endif
     endfunction
