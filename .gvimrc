@@ -6,7 +6,7 @@ set cursorline
 
 " Set GUI font
 if has("mac")
-    set guifont=Menlo\ Regular:h14
+    set guifont=Menlo\ Regular:h15
 else
     set guifont=Ubuntu\ Mono\ 12
 endif
