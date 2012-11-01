@@ -57,64 +57,64 @@ EOF
 " ctags -->
 function MyHandleCtags(action)
 python << EOF
-    """
-    Configures ctags for the current buffer depending on its file type.
-    """
+"""
+Configures ctags for the current buffer depending on its file type.
+"""
 
-    import os
-    import subprocess
-    import vim
+import os
+import subprocess
+import vim
 
-    # File that is being edited
-    file_path = vim.current.buffer.name
+# File that is being edited
+file_path = vim.current.buffer.name
 
-    # Supported languages
-    languages = [{
-        "name":       "cpp",
-        "extensions": [ ".c", ".h", ".cpp", ".cxx", ".c++", ".hpp", ".hxx", ".h++" ],
-    }]
-
-
-    def update_ctags(language):
-        """Updates ctags for the specified language."""
-
-        find_command = [ "find" ]
-        for id, extension in enumerate(language["extensions"]):
-            if id: find_command += [ "-o" ]
-            find_command += [ "-name", "*" + extension ]
-
-        ctags_command = [ "ctags" ]
-        if language["name"] == "cpp":
-            ctags_command += [ "--c-kinds=+pl", "--c++-kinds=+pl", "--fields=+iaS", "--extra=+q" ]
-        ctags_command += [ "-L", "-", "-f", ".vim/{0}.tags".format(language["name"]) ]
+# Supported languages
+languages = [{
+    "name":       "cpp",
+    "extensions": [ ".c", ".h", ".cpp", ".cxx", ".c++", ".hpp", ".hxx", ".h++" ],
+}]
 
 
-        find_process = None
-        ctags_process = None
+def update_ctags(language):
+    """Updates ctags for the specified language."""
 
-        try:
-            find_process = subprocess.Popen(find_command, stdout = subprocess.PIPE)
-            ctags_process = subprocess.Popen(ctags_command, stdin = find_process.stdout)
-        finally:
-            if find_process is not None:
-                find_process.wait()
+    find_command = [ "find" ]
+    for id, extension in enumerate(language["extensions"]):
+        if id: find_command += [ "-o" ]
+        find_command += [ "-name", "*" + extension ]
 
-            if ctags_process is not None:
-                ctags_process.wait()
+    ctags_command = [ "ctags" ]
+    if language["name"] == "cpp":
+        ctags_command += [ "--c-kinds=+pl", "--c++-kinds=+pl", "--fields=+iaS", "--extra=+q" ]
+    ctags_command += [ "-L", "-", "-f", ".vim/{0}.tags".format(language["name"]) ]
 
 
-    if vim.eval("a:action") == "on-read":
+    find_process = None
+    ctags_process = None
+
+    try:
+        find_process = subprocess.Popen(find_command, stdout = subprocess.PIPE)
+        ctags_process = subprocess.Popen(ctags_command, stdin = find_process.stdout)
+    finally:
+        if find_process is not None:
+            find_process.wait()
+
+        if ctags_process is not None:
+            ctags_process.wait()
+
+
+if vim.eval("a:action") == "on-read":
+    for language in languages:
+        if os.path.splitext(file_path)[1] in language["extensions"]:
+            vim.command("setlocal tags+=.vim/{language}.tags".format(
+                language = language["name"]))
+            break
+elif vim.eval("a:action") == "on-write":
+    if file_path.startswith(os.getcwd()):
         for language in languages:
             if os.path.splitext(file_path)[1] in language["extensions"]:
-                vim.command("setlocal tags+=.vim/{language}.tags".format(
-                    language = language["name"]))
+                update_ctags(language)
                 break
-    elif vim.eval("a:action") == "on-write":
-        if file_path.startswith(os.getcwd()):
-            for language in languages:
-                if os.path.splitext(file_path)[1] in language["extensions"]:
-                    update_ctags(language)
-                    break
 EOF
 endfunction
 
