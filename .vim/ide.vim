@@ -103,7 +103,9 @@ def update_ctags(language):
             ctags_process.wait()
 
 
-if vim.eval("a:action") == "on-read":
+if file_path is None:
+    pass
+elif vim.eval("a:action") == "on-read":
     for language in languages:
         if os.path.splitext(file_path)[1] in language["extensions"]:
             vim.command("setlocal tags+=.vim/{language}.tags".format(
