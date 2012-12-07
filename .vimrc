@@ -653,27 +653,27 @@ endif
 
 
 " Highlight textwidth column -->
-    hi TextWidthColumn ctermbg=lightgray guibg=lightgray
-
     function HighlightTextWidthColumn()
+        hi TextWidthColumn ctermbg=lightgray guibg=lightgray
+
         if !exists("w:TextWidthColumnMatch")
             let w:TextWidthColumnMatch = matchadd('TextWidthColumn', '\%<80v.\%>79v', -1)
         endif
     endfunction
 
-    au WinEnter * call HighlightTextWidthColumn()
+    au BufWinEnter * call HighlightTextWidthColumn()
     call HighlightTextWidthColumn()
 " Highlight textwidth column <--
 
 " Highlight trailing whitespace -->
-    hi TrailingWhitespace ctermbg=lightgray guibg=lightgray
-
     function HighlightTrailingWhitespace()
+        hi TrailingWhitespace ctermbg=lightgray guibg=lightgray
+
         if !exists("w:TrailingWhitespace")
             let w:TrailingWhitespace = matchadd('TrailingWhitespace', '\s\+$', -1)
         endif
     endfunction
 
-    au WinEnter * call HighlightTrailingWhitespace()
+    au BufWinEnter * call HighlightTrailingWhitespace()
     call HighlightTrailingWhitespace()
 " Highlight trailing whitespace <--
