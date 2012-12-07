@@ -36,15 +36,6 @@ setlocal formatoptions-=t
 "setlocal formatoptions+=j
 
 
-" Highlight textwidth column
-highlight TextWidthColumn ctermbg=lightgray guibg=lightgray
-au BufWinEnter * let w:TextWidthColumnMatch=matchadd('TextWidthColumn', '\%<80v.\%>79v', -1)
-
-" Highlight trailing whitespace
-highlight TrailingWhitespace ctermbg=lightgray guibg=lightgray
-au BufWinEnter * let w:TrailingWhitespace=matchadd('TrailingWhitespace', '\s\+$', -1)
-
-
 " C++ tags
 if &filetype == "cpp"
     setlocal tags+=~/.vim/tags/cpp-stl

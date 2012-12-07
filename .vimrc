@@ -650,3 +650,30 @@ endif
     " Show access specifiers (public, protected, private: '+', " '#', '-').
     let OmniCpp_ShowAccess = 1
 " OmniCppComplete <--
+
+
+" Highlight textwidth column -->
+    hi TextWidthColumn ctermbg=lightgray guibg=lightgray
+
+    function HighlightTextWidthColumn()
+        if !exists("w:TextWidthColumnMatch")
+            let w:TextWidthColumnMatch = matchadd('TextWidthColumn', '\%<80v.\%>79v', -1)
+        endif
+    endfunction
+
+    au WinEnter * call HighlightTextWidthColumn()
+    call HighlightTextWidthColumn()
+" Highlight textwidth column <--
+
+" Highlight trailing whitespace -->
+    hi TrailingWhitespace ctermbg=lightgray guibg=lightgray
+
+    function HighlightTrailingWhitespace()
+        if !exists("w:TrailingWhitespace")
+            let w:TrailingWhitespace = matchadd('TrailingWhitespace', '\s\+$', -1)
+        endif
+    endfunction
+
+    au WinEnter * call HighlightTrailingWhitespace()
+    call HighlightTrailingWhitespace()
+" Highlight trailing whitespace <--
