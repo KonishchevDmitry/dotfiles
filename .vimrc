@@ -652,6 +652,21 @@ endif
 " OmniCppComplete <--
 
 
+" jedi-vim (Python autocompletion)
+"
+" Notice: <leader> is \.
+"
+" Autocompletion by <C-Space>.
+" Go to name definition by <leader g>.
+" Go to entity definition by <leader d>.
+" Refactor by <leader r>.
+" Show all references <leader n>.
+" Show pydoc by <K>.
+
+" Don't automatically complete on dot
+let g:jedi#popup_on_dot = 0
+
+
 " Highlight textwidth column -->
     function HighlightTextWidthColumn()
         hi TextWidthColumn ctermbg=lightgray guibg=lightgray
