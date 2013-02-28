@@ -15,6 +15,7 @@ inoremap # X<C-H>#
 setlocal makeprg=python\ -c\ \"import\ py_compile,sys,tempfile;\ sys.stderr=sys.stdout;\ output=tempfile.NamedTemporaryFile();\ py_compile.compile(\'%\',output.name)\"
 setlocal efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
 
+
 python << EOF
 """
 Adds all python modules to the path.
@@ -31,12 +32,15 @@ for path in sys.path:
         vim.command(r"set path+=" + path.replace(" ", r"\ "))
 EOF
 
-" For the future. Doesn't work in Fedora 17 at this time.
-"" Execute a selection of code (very cool!)
-"" Use VISUAL to select a range and then hit ctrl-h to execute it.
-"python << EOL
-"import vim
-"def EvaluateCurrentRange():
-"    eval(compile('\n'.join(vim.current.range),'','exec'),globals())
-"EOL
-"map <C-h> :py EvaluateCurrentRange()
+
+python << EOL
+"""
+Execute a selection of code.
+Use VISUAL to select a range and then hit F7 to execute it.
+"""
+
+import vim
+def EvaluateCurrentRange():
+    eval(compile("\n".join(vim.current.range), "", "exec"), globals())
+EOL
+map <F7> :py EvaluateCurrentRange()<CR>
