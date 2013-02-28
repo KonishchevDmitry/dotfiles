@@ -17,6 +17,7 @@
     mt = mergetool --no-prompt
     pa = push --all
     pt = push --tags
+    rb = rebase --committer-date-is-author-date
     st = status
 [merge]
     tool = meld
