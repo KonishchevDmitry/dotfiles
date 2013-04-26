@@ -184,37 +184,45 @@ map <F2> :emenu <C-Z>
 
 
 " Keyboard layout switching -->
-if has("keymap")
-    " Keyboard mapping to switch to on <C-^>
-    set keymap=russian-jcukenwin
+    if has("macunix")
+        " Native Mac OS X keyboard layout switching via KeyboardLayoutSwitcher
+        " plugin
 
-    " Default keyboard mapping is English
-    set iminsert=0
+        " Store layout on InsertLeave and restore on InsertEnter
+        let g:kls_insertEnterRestoresLast = 1
+    endif
 
-    " Default keyboard mapping for search is English
-    set imsearch=-1
+    if has("keymap")
+        " Keyboard mapping to switch to on <C-^>
+        set keymap=russian-jcukenwin
 
-    " Sets status line color depending on current keyboard mapping
-    function MyKeyMapHighlight()
-        if &iminsert == 0
-            hi StatusLine ctermfg=DarkBlue guifg=DarkBlue
-        else
-            hi StatusLine ctermfg=DarkGreen guifg=DarkGreen
-        endif
-    endfunction
+        " Default keyboard mapping is English
+        set iminsert=0
 
-    " Set colors on Vim startup
-    call MyKeyMapHighlight()
+        " Default keyboard mapping for search is English
+        set imsearch=-1
 
-    " Update status line color on window switching
-    au WinEnter * :call MyKeyMapHighlight()
+        " Sets status line color depending on current keyboard mapping
+        function MyKeyMapHighlight()
+            if &iminsert == 0
+                hi StatusLine ctermfg=DarkBlue guifg=DarkBlue
+            else
+                hi StatusLine ctermfg=DarkGreen guifg=DarkGreen
+            endif
+        endfunction
 
-    " Keyboard mapping switching by <C-F>
-    cmap <silent> <C-F> <C-^>
-    imap <silent> <C-F> <C-^>X<Esc>:call MyKeyMapHighlight()<CR>a<C-H>
-    nmap <silent> <C-F> a<C-^><Esc>:call MyKeyMapHighlight()<CR>
-    vmap <silent> <C-F> <Esc>a<C-^><Esc>:call MyKeyMapHighlight()<CR>gv
-endif
+        " Set colors on Vim startup
+        call MyKeyMapHighlight()
+
+        " Update status line color on window switching
+        au WinEnter * :call MyKeyMapHighlight()
+
+        " Keyboard mapping switching by <C-F>
+        cmap <silent> <C-F> <C-^>
+        imap <silent> <C-F> <C-^>X<Esc>:call MyKeyMapHighlight()<CR>a<C-H>
+        nmap <silent> <C-F> a<C-^><Esc>:call MyKeyMapHighlight()<CR>
+        vmap <silent> <C-F> <Esc>a<C-^><Esc>:call MyKeyMapHighlight()<CR>gv
+    endif
 " Keyboard layout switching <--
 
 
