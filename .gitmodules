@@ -13,3 +13,9 @@
 [submodule ".vim/bundle/KeyboardLayoutSwitcher"]
 	path = .vim/bundle/KeyboardLayoutSwitcher
 	url = git@github.com:cypok/KeyboardLayoutSwitcher.git
+[submodule ".vim/bundle/xkb-switch"]
+	path = .vim/bundle/xkb-switch
+	url = git@github.com:ierton/xkb-switch.git
+[submodule ".vim/bundle/vim-xkbswitch"]
+	path = .vim/bundle/vim-xkbswitch
+	url = git@github.com:lyokha/vim-xkbswitch.git

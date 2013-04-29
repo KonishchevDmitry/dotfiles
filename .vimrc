@@ -190,6 +190,20 @@ map <F2> :emenu <C-Z>
 
         " Store layout on InsertLeave and restore on InsertEnter
         let g:kls_insertEnterRestoresLast = 1
+    elseif has("unix") && $DISPLAY != ""
+        " Native X11 keyboard layout switching via vim-xkbswitch plugin
+
+        " Path to the switcher library
+        let g:XkbSwitchLib = $HOME."/.vim/bundle/xkb-switch/libxkbswitch.so"
+
+        if filereadable(g:XkbSwitchLib)
+            " Enable the plugin
+            let g:XkbSwitchEnabled = 1
+
+            " Insert mappings duplicates for Russian winkeys layout will be
+            " generated whenever Insert mode is started
+            let g:XkbSwitchIMappings = ["ru"]
+        endif
     endif
 
     if has("keymap")

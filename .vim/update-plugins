@@ -32,3 +32,9 @@ for plugin in pathogen bundle/*; do
     echo;echo "Updating $plugin..."
     ( cd "$plugin" && git checkout master && git pull && git submodule update )
 done
+
+# Recompile xkb-switch library
+if [ "$(uname -o)" == "GNU/Linux" ]; then
+    echo;echo "Compile xkb-switch..."
+    (cd "bundle/xkb-switch" && cmake . && make)
+fi
