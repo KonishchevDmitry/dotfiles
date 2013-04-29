@@ -194,7 +194,7 @@ map <F2> :emenu <C-Z>
         " Native X11 keyboard layout switching via vim-xkbswitch plugin
 
         " Path to the switcher library
-        let g:XkbSwitchLib = $HOME."/.vim/bundle/xkb-switch/libxkbswitch.so"
+        let g:XkbSwitchLib = $HOME."/.vim/libxkbswitch.so"
 
         if filereadable(g:XkbSwitchLib)
             " Enable the plugin

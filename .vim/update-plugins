@@ -36,5 +36,5 @@ done
 # Recompile xkb-switch library
 if [ "$(uname -o)" == "GNU/Linux" ]; then
     echo;echo "Compile xkb-switch..."
-    (cd "bundle/xkb-switch" && cmake . && make)
+    (cd "bundle/xkb-switch" && cmake . && make && mv libxkbswitch.so "$script_dir/" && git clean -df)
 fi
