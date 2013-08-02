@@ -530,6 +530,6 @@ let g:jedi#popup_on_dot = 0
 " Highlight trailing whitespace <--
 
 " Source all configuration files
-for config in ['file-encoding', 'spell', 'tab-bar', 'tab-management']
+for config in ['file-encoding', 'spell-checking', 'tab-bar', 'tab-management']
     exec ':source ~/.vim/config/'.config.'.vim'
 endfor
