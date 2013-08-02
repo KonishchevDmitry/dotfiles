@@ -1,9 +1,17 @@
 " Plugin configuration
+"
+" Notice: <leader> is \.
+
+
+" NERDTree
+
+nmap <leader>t :NERDTreeTabsToggle<CR>
+let g:nerdtree_tabs_open_on_gui_startup = 0
+let g:nerdtree_tabs_open_on_console_startup = 0
+
 
 
 " jedi-vim (Python autocompletion)
-"
-" Notice: <leader> is \.
 "
 " Autocompletion by <C-Space>.
 " Go to name definition by <leader g>.
