@@ -292,26 +292,6 @@ map <F2> :emenu <C-Z>
 " Wrapper for :make <--
 
 
-" File encoding menu -->
-    " File encoding to read
-    menu Encoding.Read.UTF-8 :e ++enc=utf8<CR>
-    menu Encoding.Read.Windows-1251 :e ++enc=cp1251<CR>
-    menu Encoding.Read.KOI8-R :e ++enc=koi8-r<CR>
-    menu Encoding.Read.CP866 :e ++enc=cp866<CR>
-
-    " File encoding to write
-    menu Encoding.Write.UTF-8 :set fenc=utf8<CR>
-    menu Encoding.Write.Windows-1251 :set fenc=cp1251<CR>
-    menu Encoding.Write.KOI8-R :set fenc=koi8-r<CR>
-    menu Encoding.Write.CP866 :set fenc=cp866<CR>
-
-    " End of line format (dos - <CR><NL>, unix - <NL>, mac - <CR>)
-    menu Encoding.End\ of\ line\ format.UNIX :set fileformat=unix<CR>
-    menu Encoding.End\ of\ line\ format.DOS :set fileformat=dos<CR>
-    menu Encoding.End\ of\ line\ format.Mac :set fileformat=mac<CR>
-" File encoding menu <--
-
-
 " Translating words with console version of StarDict -->
     function MyTranslateWord()
         let s:dict    = "sdcv"
@@ -674,6 +654,6 @@ let g:jedi#popup_on_dot = 0
 " Highlight trailing whitespace <--
 
 " Source all configuration files
-for config in ["spell"]
+for config in ["file-encoding", "spell"]
     exec ":source ~/.vim/config/".config.".vim"
 endfor
