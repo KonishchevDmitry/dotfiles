@@ -54,7 +54,6 @@ for path in paths:
 EOF
 
 
-" ctags -->
 function MyHandleCtags(action)
 python << EOF
 """
@@ -122,4 +121,3 @@ endfunction
 
 au BufRead * call MyHandleCtags("on-read")
 au BufWritePost * call MyHandleCtags("on-write")
-" ctags <--

@@ -1,1 +1,1 @@
-../develop.vim
+../config/devel.vim

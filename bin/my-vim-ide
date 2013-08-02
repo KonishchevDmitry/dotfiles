@@ -13,4 +13,4 @@ project_dir="$1"
 cd "$project_dir"
 mkdir -p .vim
 
-gvim -S ~/.vim/ide.vim
+gvim -S ~/.vim/config/ide.vim
