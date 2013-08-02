@@ -11,6 +11,16 @@ let g:nerdtree_tabs_open_on_console_startup = 0
 
 
 
+" CtrlP
+
+let g:ctrlp_map = '<C-P>'
+let g:ctrlp_cmd = 'CtrlPCurWD'
+let g:ctrlp_regexp = 1
+let g:ctrlp_by_filename = 1
+let g:ctrlp_custom_ignore = {'file': '\v\.(bak|pyc)$'}
+
+
+
 " jedi-vim (Python autocompletion)
 "
 " Autocompletion by <C-Space>.
