@@ -85,10 +85,6 @@ set nobackup
 set noswapfile
 
 
-" We have to set this variable to get "c" filetype for *.h files instead of "cpp"
-let c_syntax_for_h=""
-
-
 " Source all configuration files
 source ~/.vim/config/binary-file-support.vim
 source ~/.vim/config/cpp-header-switch.vim
