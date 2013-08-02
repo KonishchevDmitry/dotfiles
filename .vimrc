@@ -85,6 +85,12 @@ set nobackup
 set noswapfile
 
 
+" Assume that we always support at least 256 colors
+if !has("gui_running") && &t_Co < 256
+    set t_Co=256
+endif
+
+
 " Source all configuration files
 source ~/.vim/config/binary-file-support.vim
 source ~/.vim/config/cpp-header-switch.vim
