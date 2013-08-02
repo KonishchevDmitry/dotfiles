@@ -1,4 +1,7 @@
-" File encoding menu
+" File encoding configuration
+
+" Character encodings considered when starting to edit an existing file
+set fileencodings=utf-8,cp1251,koi8-r,cp866
 
 " File encoding to read
 menu Encoding.Read.UTF-8 :e ++enc=utf8<CR>
