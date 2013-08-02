@@ -93,6 +93,7 @@ endif
 
 " Source all configuration files
 source ~/.vim/config/binary-file-support.vim
+source ~/.vim/config/coding-style.vim
 source ~/.vim/config/cpp-header-switch.vim
 source ~/.vim/config/file-encoding.vim
 source ~/.vim/config/highlight.vim
