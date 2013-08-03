@@ -21,7 +21,7 @@ for plugin in pathogen bundle/*; do
 done
 
 # Recompile xkb-switch library
-if [ "$(uname -o)" == "GNU/Linux" ]; then
+if [ "$(uname)" != "Darwin" ]; then
     echo;echo "Compile xkb-switch..."
     (cd "bundle/xkb-switch" && cmake . && make && mv libxkbswitch.so ~/.vim && git clean -df)
 fi
