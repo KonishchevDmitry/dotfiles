@@ -69,3 +69,10 @@ let OmniCpp_ShowPrototypeInAbbr = 1
 
 " Show access specifiers (public, protected, private: '+', " '#', '-').
 let OmniCpp_ShowAccess = 1
+
+
+
+" Syntastic
+
+" pylint is default but it's too strict
+let g:syntastic_python_checkers = [ 'pyflakes' ]
