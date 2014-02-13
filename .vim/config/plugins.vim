@@ -21,6 +21,12 @@ let g:ctrlp_custom_ignore = {'file': '\v\.(bak|pyc)$'}
 
 
 
+" vim-easy-align
+
+vmap <Enter> <Plug>(EasyAlign)
+
+
+
 " jedi-vim (Python autocompletion)
 "
 " Autocompletion by <C-Space>.

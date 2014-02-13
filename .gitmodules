@@ -28,3 +28,9 @@
 [submodule ".vim/bundle/ctrlp.vim"]
 	path = .vim/bundle/ctrlp.vim
 	url = git@github.com:kien/ctrlp.vim.git
+[submodule ".vim/bundle/vim-easy-align"]
+	path = .vim/bundle/vim-easy-align
+	url = git@github.com:junegunn/vim-easy-align.git
+[submodule ".vim/bundle/vim-ctrlspace"]
+	path = .vim/bundle/vim-ctrlspace
+	url = git@github.com:szw/vim-ctrlspace.git
