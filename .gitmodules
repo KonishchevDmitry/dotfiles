@@ -12,25 +12,25 @@
 	url = https://github.com/davidhalter/jedi-vim
 [submodule ".vim/bundle/KeyboardLayoutSwitcher"]
 	path = .vim/bundle/KeyboardLayoutSwitcher
-	url = git@github.com:cypok/KeyboardLayoutSwitcher.git
+	url = https://github.com/cypok/KeyboardLayoutSwitcher.git
 [submodule ".vim/bundle/xkb-switch"]
 	path = .vim/bundle/xkb-switch
-	url = git@github.com:ierton/xkb-switch.git
+	url = https://github.com/ierton/xkb-switch.git
 [submodule ".vim/bundle/vim-xkbswitch"]
 	path = .vim/bundle/vim-xkbswitch
-	url = git@github.com:lyokha/vim-xkbswitch.git
+	url = https://github.com/lyokha/vim-xkbswitch.git
 [submodule ".vim/bundle/nerdtree"]
 	path = .vim/bundle/nerdtree
-	url = git@github.com:scrooloose/nerdtree.git
+	url = https://github.com/scrooloose/nerdtree.git
 [submodule ".vim/bundle/vim-nerdtree-tabs"]
 	path = .vim/bundle/vim-nerdtree-tabs
-	url = git@github.com:jistr/vim-nerdtree-tabs.git
+	url = https://github.com/jistr/vim-nerdtree-tabs.git
 [submodule ".vim/bundle/ctrlp.vim"]
 	path = .vim/bundle/ctrlp.vim
-	url = git@github.com:kien/ctrlp.vim.git
+	url = https://github.com/kien/ctrlp.vim.git
 [submodule ".vim/bundle/vim-easy-align"]
 	path = .vim/bundle/vim-easy-align
-	url = git@github.com:junegunn/vim-easy-align.git
+	url = https://github.com/junegunn/vim-easy-align.git
 [submodule ".vim/bundle/vim-ctrlspace"]
 	path = .vim/bundle/vim-ctrlspace
-	url = git@github.com:szw/vim-ctrlspace.git
+	url = https://github.com/szw/vim-ctrlspace.git
