@@ -12,6 +12,7 @@
     br = branch
     ci = commit -a
     co = checkout
+    gitk = log --pretty=oneline --graph --decorate --all
     gr = grep -n --color --extended-regexp
     me = merge --no-commit
     mt = mergetool --no-prompt
