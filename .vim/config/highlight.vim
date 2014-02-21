@@ -4,7 +4,7 @@ function HighlightTextWidthColumn()
     hi TextWidthColumn ctermbg=lightgray guibg=lightgray
 
     if !exists('w:TextWidthColumnMatch')
-        let w:TextWidthColumnMatch = matchadd('TextWidthColumn', '\%<80v.\%>79v', -1)
+        let w:TextWidthColumnMatch = matchadd('TextWidthColumn', '\%<81v.\%>80v', -1)
     endif
 endfunction
 
