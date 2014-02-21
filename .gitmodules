@@ -34,3 +34,6 @@
 [submodule ".vim/bundle/vim-ctrlspace"]
 	path = .vim/bundle/vim-ctrlspace
 	url = https://github.com/szw/vim-ctrlspace.git
+[submodule ".vim/bundle/Vim-Jinja2-Syntax"]
+	path = .vim/bundle/Vim-Jinja2-Syntax
+	url = https://github.com/KonishchevDmitry/Vim-Jinja2-Syntax.git
