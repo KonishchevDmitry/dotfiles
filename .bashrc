@@ -21,6 +21,7 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 
 # Enable programmable completion features
+# Note: in OS X bash completion will work only in /opt/local/bin/bash
 if ! shopt -oq posix; then
     [ ! -f /etc/bash_completion ] || . /etc/bash_completion
 
