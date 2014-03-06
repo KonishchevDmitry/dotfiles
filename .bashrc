@@ -21,8 +21,13 @@ if [ -x /usr/bin/dircolors ]; then
 fi
 
 # Enable programmable completion features
-if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
-    . /etc/bash_completion
+# Note: in OS X bash completion will work only in /opt/local/bin/bash
+if ! shopt -oq posix; then
+    [ ! -f /etc/bash_completion ] || . /etc/bash_completion
+
+    if [ "$(uname)" = Darwin -a -f /opt/local/etc/bash_completion ]; then
+        . /opt/local/etc/bash_completion
+    fi
 fi
 
 
@@ -55,7 +60,7 @@ if ! echo "$PROMPT_COMMAND" | grep -qF 'history -a'; then
     PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 fi
 
-# Автоматическое исправление ошибок в именах каталогов при выполнении команды cd
+# Automatically fix spelling errors in directory names for cd command
 shopt -s cdspell
 
 # Save all lines of a multiple-line command in the same history entry
@@ -77,20 +82,9 @@ unset hist_option
 # Do not write the following commands to the history
 HISTIGNORE="cd"
 
-
-# Command line prompt -->
-    PS1='\h:\w'
-    __git_ps1 > /dev/null 2>&1 && PS1+='$(__git_ps1 ":%s")'
-    PS1+='\$ '
-    PS2='> '
-
-    PS1="\[\033[01m\]$PS1\[\033[00m\]"
-    PS2="\[\033[01m\]$PS2\[\033[00m\]"
-    if [ "$UID" -eq 0 ]; then
-        PS1="\[\033[31m\]$PS1"
-        PS2="\[\033[31m\]$PS2"
-    fi
-# Command line prompt <--
+# Set base command line prompt (it could be modified later)
+PS1='\h:\w'
+PS2='> '
 
 
 # Aliases
@@ -121,4 +115,15 @@ if [ -d ~/.bashrc.d ]; then
         [ -r $file ] && . $file
     done
     unset file
+fi
+
+
+# Finalize command line prompt
+PS1+='\$ '
+
+PS1="\[\033[01m\]$PS1\[\033[00m\]"
+PS2="\[\033[01m\]$PS2\[\033[00m\]"
+if [ "$UID" -eq 0 ]; then
+    PS1="\[\033[31m\]$PS1"
+    PS2="\[\033[31m\]$PS2"
 fi

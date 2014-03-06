@@ -6,17 +6,19 @@ if filereadable(".vim/ide.vim")
     source .vim/ide.vim
 endif
 
-" Do not restore settings from the session to not override settings from
-" .vimrc file
-set sessionoptions-=options,winsize
-
-" Restore saved session
-if getfsize(".vim/ide.session") >= 0
-    source .vim/ide.session
-endif
-
-" Save the session on exit
-au VimLeave * :mksession! .vim/ide.session
+" Disable session saving/restoring for now and rely on ctrlp.vim here
+"
+"" Do not restore settings from the session to not override settings from
+"" .vimrc file
+"set sessionoptions-=options,winsize
+"
+"" Restore saved session
+"if getfsize(".vim/ide.session") >= 0
+"    source .vim/ide.session
+"endif
+"
+"" Save the session on exit
+"au VimLeave * :mksession! .vim/ide.session
 
 
 python << EOF
