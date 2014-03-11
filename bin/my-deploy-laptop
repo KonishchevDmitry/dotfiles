@@ -82,7 +82,7 @@ install_packages() {
     # emulator
     sudo port install bash bash-completion
 
-    sudo port install htop pstree tree watch
+    sudo port install htop mutt pstree tree watch
 
     # We already have git in the system, but this package brings to us git
     # completion and gitk tool
