@@ -38,8 +38,13 @@ uninstall_packages() {
 
     echo "Dropping selected alternatives..."
 
-    if [ -n "$port_pyver" ] && port select --show pyflakes > /dev/null 2>&1; then
-        sudo port select --set pyflakes none ||:
+    if [ -n "$port_pyver" ]; then
+        local alternative
+        for alternative in pyflakes virtualenv; do
+            if port select --show $alternative > /dev/null 2>&1; then
+                sudo port select --set $alternative none ||:
+            fi
+        done
     fi
 
     echo "Uninstalling all pip packages..."
@@ -98,6 +103,7 @@ install_packages() {
     sudo port install python$port_pyver
     sudo port install py$port_pyver-pip
     sudo port install py$port_pyver-virtualenvwrapper
+    [ -z "$port_pyver" ] || sudo port select --set virtualenv virtualenv$port_pyver
 
     sudo port install py$port_pyver-pyflakes
     [ -z "$port_pyver" ] || sudo port select --set pyflakes py$port_pyver-pyflakes
