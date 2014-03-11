@@ -1,0 +1,84 @@
+# Configuration file for the Mutt Mail User Agent
+
+# ~/.mailcap specifies applications which will be used to open non-text files.
+# See /etc/mailcap for examples.
+
+# Mail boxes
+set folder = "~"
+#set mbox = "=trash"
+
+# File into which outgoing messages will be appended
+#set record = "~/Mail/sent"
+
+# When set, an arrow “->” will be used to indicate the current entry in menus
+# instead of highlighting the whole line.
+set arrow_cursor = yes
+
+# Messages marked for deleting will automatically be purged without prompting
+set delete = yes
+
+# Don't move read messages from spool mailbox to $mbox mailbox
+set move = no
+
+# Read messages marked as flagged will not be moved from spool mailbox to $mbox
+# mailbox
+set keep_flagged = yes
+
+# The internal-pager will not move to the next message when you are at the end
+# of a message and invoke the <next-page> function
+set pager_stop = yes
+
+# Sync mailbox hotkey
+#macro index \` "!fetchmail\n"
+bind index Z sync-mailbox
+bind pager Z sync-mailbox
+
+# “From:” header
+set use_from = yes
+set from = "konishchev@gmail.com"
+set realname = "Dmitry Konishchev"
+
+# Character set for outgoing messages
+set send_charset = "utf-8"
+
+# Derive the sender from the “From:” header
+set envelope_from = yes
+
+# Specifies the program and arguments used to deliver mail sent by Mutt
+set sendmail = "/usr/bin/msmtp"
+
+# Command to make external address queries
+set query_command = "abook --mutt-query '%s'"
+bind editor \t complete-query
+
+# Convert the given MIME types to text/plain when displaying messages.
+# For this to work, there must be a mailcap(5) entry for the given MIME type.
+auto_view text/html
+
+# Color theme
+color error red default
+color bold brightwhite black
+color attachment default white
+color underline brightwhite black
+
+color header brightdefault white ^Subject
+color header brightdefault white ^From
+
+color hdrdefault default white # email headers
+
+color index brightdefault default ~O # Old unread messages
+color index brightdefault default ~N # New unread messages
+color index red default ~F # Flagged messages
+color index brightred default ~O~F # Old unread flagged messages
+color index brightred default ~N~F # New unread flagged messages
+
+color indicator brightdefault default # Cursor
+color markers brightwhite white # New line markers ("+")
+color message brightdefault default # Status line messages
+color normal default default # All other text and spaces
+color quoted default white # Quotes
+color search brightwhite black # Search highlighting
+color signature default white # Message signature
+color status black white # Status lines at top and bottom
+color tilde default default # Space between bottom message line and bottom screen line
+color tree default default # Trees in threads
