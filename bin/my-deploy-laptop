@@ -37,15 +37,21 @@ uninstall_packages() {
         launchctl unload /Library/LaunchAgents/org.freedesktop.dbus-session.plist
 
     echo "Dropping selected alternatives..."
+    local alternative
 
     if [ -n "$port_pyver" ]; then
-        local alternative
         for alternative in pyflakes virtualenv; do
             if port select --show $alternative > /dev/null 2>&1; then
                 sudo port select --set $alternative none ||:
             fi
         done
     fi
+
+    for alternative in ack; do
+        if [ -L $prefix/bin/$alternative ]; then
+            unlink $prefix/bin/$alternative
+        fi
+    done
 
     echo "Uninstalling all pip packages..."
 
@@ -65,8 +71,8 @@ uninstall_packages() {
         sudo port uninstall installed
     fi
 
-    check_system_directory /opt/local/Library/Frameworks/Python.framework
-    check_system_directory /opt/local/bin '^(daemondo|port|portf|portindex|portmirror)$'
+    check_system_directory $prefix/Library/Frameworks/Python.framework
+    check_system_directory $prefix/bin '^(daemondo|port|portf|portindex|portmirror)$'
 
     echo "Uninstallation finished successfully."
 }
@@ -78,11 +84,15 @@ install_packages() {
 
     # Mac Port's bash in contrast to system's bash supports completion
     #
-    # Don't forget to set '/opt/local/bin/bash -l' as a shell in the terminal
+    # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal
     # emulator
     sudo port install bash bash-completion
 
     sudo port install htop mutt pstree tree watch
+
+    sudo port install p5-app-ack
+    which -s ack || [ -x $prefix/bin/ack-* ] &&
+        (cd $prefix/bin && sudo ln -s ack-* ack) || false
 
     # We already have git in the system, but this package brings to us git
     # completion and gitk tool
@@ -97,7 +107,7 @@ install_packages() {
         sudo port install meld
         launchctl load -w /Library/LaunchAgents/org.freedesktop.dbus-session.plist
         sudo port install gnome-themes-standard
-        echo 'include "/opt/local/share/themes/Adwaita/gtk-2.0/gtkrc"' > ~/.gtkrc-2.0
+        echo "include \"$prefix/share/themes/Adwaita/gtk-2.0/gtkrc\"" > ~/.gtkrc-2.0
     fi
 
     sudo port install python$port_pyver
@@ -142,6 +152,8 @@ fi
 if [ "$(whoami)" = root ]; then
     die "The script must be run from user."
 fi
+
+prefix=/opt/local
 
 # Python version which is used to install all packages
 pyver=3.3
