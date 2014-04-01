@@ -118,12 +118,14 @@ install_packages() {
     sudo port install py$port_pyver-pyflakes
     [ -z "$port_pyver" ] || sudo port select --set pyflakes py$port_pyver-pyflakes
 
-    sudo pip$pyver install pyvsb
-    sudo pip$pyver install $(github_package pydeposits)
-    sudo pip$pyver install $(git_package credit-calculator)
+    if [ "$role" = "personal" ]; then
+        sudo pip$pyver install pyvsb
+        sudo pip$pyver install $(github_package pydeposits)
+        sudo pip$pyver install $(git_package credit-calculator)
 
-    sudo port install npm
-    sudo npm install --global less
+        sudo port install npm
+        sudo npm install --global less
+    fi
 
     set +x; echo "Installation finished successfully."
 }
@@ -154,12 +156,25 @@ if [ "$(whoami)" = root ]; then
 fi
 
 prefix=/opt/local
+role="$LAPTOP_ROLE"
 
 # Python version which is used to install all packages
 pyver=3.3
 port_pyver=33
-
 install_meld=1
+
+case $LAPTOP_ROLE in
+    "job")
+        pyver=2.7
+        port_pyver=27
+        install_meld=0
+        ;;
+    "personal")
+        ;;
+    *)
+        die 'Invalid $LAPTOP_ROLE value.'
+        ;;
+esac
 
 case $1 in
     "install") question_user "install all required packages" && install_packages ;;
