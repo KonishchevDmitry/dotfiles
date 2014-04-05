@@ -109,10 +109,13 @@ install_packages() {
     fi
 
     sudo port install python$port_pyver
+    sudo port select --set python python$port_pyver
+
     sudo port install py$port_pyver-pip
     sudo port install py$port_pyver-virtualenvwrapper
     sudo port select --set virtualenv virtualenv$port_pyver
 
+    sudo port install py$port_pyver-jedi
     sudo port install py$port_pyver-pyflakes
     sudo port select --set pyflakes py$port_pyver-pyflakes
 
