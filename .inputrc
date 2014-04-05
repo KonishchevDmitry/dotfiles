@@ -10,8 +10,21 @@ set completion-query-items 50
 # Completed names which are symbolic links to directories have a slash appended
 set mark-symlinked-directories on
 
-# Search history with C-N/C-P/Up/Down using currently typed command
-"\e[A": history-search-backward
-"\e[B": history-search-forward
-"\C-p": history-search-backward
-"\C-n": history-search-forward
+$if mode=emacs
+    # Search history with C-N/C-P/Up/Down using currently typed command
+    "\e[A": history-search-backward
+    "\e[B": history-search-forward
+    "\C-p": history-search-backward
+    "\C-n": history-search-forward
+
+    # Ctrl-left-arrow, Ctrl-right-arrow, Meta-left-arrow and Meta-right-arrow
+    # for word moving
+    #
+    # OS X doesn't have this by default
+    "\e[1;5C": forward-word
+    "\e[1;5D": backward-word
+    "\e[5C": forward-word
+    "\e[5D": backward-word
+    "\e\e[C": forward-word
+    "\e\e[D": backward-word
+$endif
