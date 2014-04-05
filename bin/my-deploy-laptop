@@ -39,13 +39,11 @@ uninstall_packages() {
     echo "Dropping selected alternatives..."
     local alternative
 
-    if [ -n "$port_pyver" ]; then
-        for alternative in pyflakes virtualenv; do
-            if port select --show $alternative > /dev/null 2>&1; then
-                sudo port select --set $alternative none ||:
-            fi
-        done
-    fi
+    for alternative in pyflakes virtualenv; do
+        if port select --show $alternative > /dev/null 2>&1; then
+            sudo port select --set $alternative none ||:
+        fi
+    done
 
     for alternative in ack; do
         if [ -L $prefix/bin/$alternative ]; then
@@ -113,10 +111,10 @@ install_packages() {
     sudo port install python$port_pyver
     sudo port install py$port_pyver-pip
     sudo port install py$port_pyver-virtualenvwrapper
-    [ -z "$port_pyver" ] || sudo port select --set virtualenv virtualenv$port_pyver
+    sudo port select --set virtualenv virtualenv$port_pyver
 
     sudo port install py$port_pyver-pyflakes
-    [ -z "$port_pyver" ] || sudo port select --set pyflakes py$port_pyver-pyflakes
+    sudo port select --set pyflakes py$port_pyver-pyflakes
 
     if [ "$role" = "personal" ]; then
         sudo pip$pyver install pyvsb
