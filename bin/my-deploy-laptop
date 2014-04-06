@@ -39,7 +39,7 @@ uninstall_packages() {
     echo "Dropping selected alternatives..."
     local alternative
 
-    for alternative in pyflakes virtualenv; do
+    for alternative in pyflakes python virtualenv; do
         if port select --show $alternative > /dev/null 2>&1; then
             sudo port select --set $alternative none ||:
         fi
