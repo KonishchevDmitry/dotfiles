@@ -11,3 +11,9 @@ export EDITOR=/usr/bin/vim
 
 # Python: don't write .py[co] files on import
 export PYTHONDONTWRITEBYTECODE=yes
+
+# To eliminate problems with locale over ssh
+if [ "$(uname)" = Darwin ]; then
+    export LANG=en_US.UTF-8
+    export LC_ALL=en_US.UTF-8
+fi
