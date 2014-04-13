@@ -125,7 +125,10 @@ install_packages() {
     sudo port install py$port_pyver-virtualenvwrapper
     sudo port select --set virtualenv virtualenv$port_pyver
 
-    sudo port install py$port_pyver-jedi
+    sudo pip-$default_pyver install jedi
+    sudo port install vim +python$port_default_pyver
+    sudo port install MacVim +python$port_default_pyver
+
     sudo port install py$port_pyver-pyflakes
     sudo port select --set pyflakes py$port_pyver-pyflakes
 
@@ -169,18 +172,22 @@ fi
 prefix=/opt/local
 role="$(< ~/.role)"
 
+# MacPorts default Python version
+default_pyver=2.7
+port_default_pyver=27
+
 # Python version which is used to install all packages
 pyver=3.3
-pyversions="$pyver"
 port_pyver=33
-port_pyversions="$port_pyver"
+
+pyversions="2.7 3.3"
+port_pyversions="27 33"
+
 install_meld=1
 
 case $role in
     "laptop.job")
         install_meld=0
-        pyversions="2.7 $pyver"
-        port_pyversions="27 $port_pyversions"
         ;;
     "laptop.home")
         ;;
