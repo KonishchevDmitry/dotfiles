@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+
+"""Syncs the laptop with the server."""
+
+import copy
+import getopt
+import errno
+import imp
+import json
+import logging
+import os
+import sys
+import time
+
+import psys
+import psys.daemon
+from psys import eintr_retry
+
+import psh
+from psh import sh
+
+import pcli.log
+
+from pcore import constants
+
+LOG = logging.getLogger("sync-laptop")
+
+
+SSH_KEY = os.path.expanduser("~/.ssh/keys/laptop-sync")
+"""SSH private key."""
+
+BACKUP_NAME = "laptop.home"
+"""Backup name on the remote side."""
+
+BACKUP_PATH = "backups"
+"""Directory to backup to."""
+
+#DOWNLOADS_PATH = "downloads"
+#"""Path to directory to receive downloads from."""
+
+
+BACKUP_EVERY = constants.DAY_SECONDS
+"""Invoke backup every BACKUP_EVERY seconds."""
+
+BACKUP_SYNC_CRITICAL = max(BACKUP_EVERY, 2 * constants.DAY_SECONDS)
+"""
+Consider as a bug the situation when last successful sync of backup was
+BACKUP_SYNC_CRITICAL seconds ago.
+"""
+
+#SYNC_DOWNLOADS_EVERY = constants.DAY_SECONDS
+#"""Syncs downloads every SYNC_DOWNLOADS_EVERY seconds."""
+
+
+WIFI_STATUS_OFF = "off"
+"""Wi-Fi is turned off."""
+
+WIFI_STATUS_INTERNET = "on"
+"""Wi-Fi is on but the server is not in out LAN."""
+
+WIFI_STATUS_LOCAL = "local"
+"""Wi-Fi is on and the server is in out LAN."""
+
+
+def backup(status):
+    """Backups all significant data using PyVSB."""
+
+    time_elapsed = time.time() - status.get("last_backup", 0)
+    if time_elapsed < BACKUP_EVERY:
+        LOG.info("Last backup was %s hours ago.", time_elapsed // constants.HOUR_SECONDS)
+        return
+
+    LOG.info("Backing up...")
+
+    try:
+        cmd.pyvsb(cron = True)
+    except Exception as e:
+        LOG.error("Backup failed: %s", e)
+
+    status["last_backup"] = int(time.time())
+
+
+def get_ssh_host(wifi_status):
+    """Returns an SSH host to sync with depending on current Wi-Fi status."""
+
+    return "pyvsb@" + ("server.lan" if wifi_status == WIFI_STATUS_LOCAL else "konishchev.ru")
+
+
+def get_wifi_status():
+    """Returns current Wi-Fi status."""
+
+    airport_path = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+
+    for line in sh(airport_path)("-I"):
+        name, value = line.split(":", 1)
+        name = name.strip()
+        value = value.strip()
+
+        if name == "SSID" and value:
+            if value == "offline":
+                return WIFI_STATUS_LOCAL
+            else:
+                return WIFI_STATUS_INTERNET
+
+    return WIFI_STATUS_OFF
+
+
+def main():
+    """The script's main function."""
+
+    # Parsing command line arguments -->
+    cron_mode = False
+    debug_mode = False
+
+    cmd_options, args = getopt.gnu_getopt(
+        sys.argv[1:], "", [ "cron", "debug" ])
+
+    for option, value in cmd_options[:]:
+        if option == "--cron":
+            cron_mode = True
+        elif option == "--debug":
+            debug_mode = True
+        else:
+            raise Exception("Logical error")
+    # Parsing command line arguments <--
+
+    # Setting up logging
+    pcli.log.setup(
+        name = "sync-laptop", debug_mode = debug_mode,
+        level = logging.ERROR if not debug_mode and cron_mode else None)
+
+    lock_file_path = os.path.expanduser("~/.laptop_sync")
+
+    try:
+        lock_file_fd = psys.daemon.acquire_pidfile(lock_file_path)
+    except psys.daemon.PidFileLockedError as e:
+        if cron_mode:
+            LOG.debug("Exiting: %s", e)
+        else:
+            raise
+    else:
+        sync(lock_file_fd, cron_mode)
+
+
+def print_command(process):
+    """Prints the executing command to stdout."""
+
+    LOG.debug("Executing %s", process)
+
+
+def sync(lock_file_fd, cron_mode):
+    """Performs all necessary synchronization actions."""
+
+    status = {}
+    orig_status = {}
+
+    try:
+        try:
+            status = json.loads(psys.u(
+                eintr_retry(os.read)(lock_file_fd, constants.MEGABYTE)))
+        except ValueError:
+            pass
+        else:
+            orig_status = copy.deepcopy(status)
+
+        backup(status)
+        sync_backup(status)
+        #sync_archive(status)
+        #syncs_downloads(status, cron_mode)
+    finally:
+        if status != orig_status:
+            eintr_retry(os.lseek)(lock_file_fd, 0, os.SEEK_SET)
+            eintr_retry(os.ftruncate)(lock_file_fd, 0)
+            eintr_retry(os.write)(lock_file_fd, psys.b(json.dumps(status)))
+
+        eintr_retry(os.close)(lock_file_fd)
+
+
+#def sync_archive(status):
+#    """Uploads archive data to the cloud."""
+#
+#    time_elapsed = int(time.time()) - status.get("last_archive_sync", 0)
+#    if time_elapsed < BACKUP_EVERY:
+#        LOG.info("Archive synced %s hours ago.", time_elapsed // constants.HOUR_SECONDS)
+#        return
+#
+#    wifi_status = get_wifi_status()
+#
+#    if wifi_status == WIFI_STATUS_LOCAL:
+#        LOG.info("We are using local Wi-Fi hotspot. Syncing archive...")
+#
+#        try:
+#            host = get_ssh_host(wifi_status)
+#
+#            rsync(
+#                os.path.expanduser("~/Archive/"),
+#                "{host}:{backup_path}/archive".format(
+#                    host = host, backup_path = BACKUP_PATH),
+#                archive = True, delete = True, delete_after = True,
+#                no_owner = True, no_group = True, append=True)
+#        except Exception as e:
+#            LOG.warning("Failed to upload archive to the cloud: %s", e)
+#        else:
+#            status["last_archive_sync"] = int(time.time())
+#    else:
+#        LOG.info("We aren't in the local Wi-Fi hotspot zone. Do not sync archive.")
+#
+#    time_elapsed = int(time.time()) - status.get("last_archive_sync", 0)
+#    if time_elapsed >= BACKUP_SYNC_CRITICAL:
+#        LOG.error("Last successful archive sync was %s days ago.",
+#            time_elapsed // constants.DAY_SECONDS)
+
+
+def sync_backup(status):
+    """Uploads backup data to the cloud."""
+
+    if status.get("last_backup_sync", 0) >= status["last_backup"]:
+        return
+
+    wifi_status = get_wifi_status()
+
+    if wifi_status != WIFI_STATUS_OFF:
+        LOG.info("Wi-Fi is connected. Uploading backups to the cloud...")
+
+        try:
+            host = get_ssh_host(wifi_status)
+
+            pyvsb_config = imp.load_source("pyvsb_config",
+                os.path.expanduser("~/.pyvsb.conf"))
+
+            # We might use --append here to minimize network usage but don't
+            # do this to prevent in-place modifying of the files which makes
+            # impossible atomic backup on the other side
+            rsync(
+                os.path.normpath(pyvsb_config.BACKUP_ROOT) + "/",
+                "{host}:{backup_path}/{backup_name}".format(
+                    host = host, backup_path = BACKUP_PATH, backup_name = BACKUP_NAME),
+                archive = True, delete = True, delete_after = True,
+                no_owner = True, no_group = True)
+        except Exception as e:
+            LOG.warning("Failed to upload backups to the cloud: %s", e)
+        else:
+            status["last_backup_sync"] = int(time.time())
+    else:
+        LOG.info("Wi-Fi is not connected. Don't upload backups to the cloud.")
+
+    time_elapsed = status["last_backup"] - status.get("last_backup_sync", 0)
+    if time_elapsed >= BACKUP_SYNC_CRITICAL:
+        LOG.error("Last successful backup upload was %s days ago.",
+            time_elapsed // constants.DAY_SECONDS)
+
+
+#def syncs_downloads(status, only_if_outdated):
+#    """Syncs downloads."""
+#
+#    time_elapsed = time.time() - status.get("last_downloads_sync", 0)
+#    if only_if_outdated and time_elapsed < SYNC_DOWNLOADS_EVERY:
+#        LOG.info("Downloads synced %s hours ago.", time_elapsed // constants.HOUR_SECONDS)
+#        return
+#
+#    wifi_status = get_wifi_status()
+#    if wifi_status != WIFI_STATUS_LOCAL:
+#        LOG.info("We aren't in the local Wi-Fi hotspot zone. Do not sync downloads.")
+#        return
+#
+#    LOG.info("We are using local Wi-Fi hotspot. Syncing downloads...")
+#
+#    temp_dir = os.path.expanduser("~/.Downloads")
+#    downloads_dir = os.path.expanduser("~/Downloads")
+#
+#    try:
+#        os.mkdir(temp_dir, 0o750)
+#    except EnvironmentError as e:
+#        if e.errno != errno.EEXIST:
+#            raise e
+#
+#    try:
+#        host = get_ssh_host(wifi_status)
+#
+#        rsync(host + ":" + DOWNLOADS_PATH + "/", temp_dir,
+#            recursive = True, times = True, append = True, remove_source_files = True)
+#
+#        process = (
+#            cmd.tree("-aN", "--dirsfirst", temp_dir, downloads_dir, _defer = True) |
+#                ssh(host, sh.cat(_stdout = psh.File(os.path.join(BACKUP_PATH, "downloads"))), _defer = True))
+#        process.execute()
+#
+#        ssh(host, "cd '{downloads_path}' && find . -type d -empty -delete".format(
+#            downloads_path = DOWNLOADS_PATH))
+#    except Exception as e:
+#        LOG.warning("Downloads sync failed: %s", e)
+#    else:
+#        for item in os.listdir(temp_dir):
+#            item_path = os.path.join(temp_dir, item)
+#
+#            LOG.debug("Moving %s to %s...", item_path, downloads_dir)
+#
+#            for dup_id in range(0, 10):
+#                if dup_id:
+#                    dest_item_path = os.path.join(downloads_dir, "DUP_{0}.{1}".format(dup_id, item))
+#                else:
+#                    dest_item_path = os.path.join(downloads_dir, item)
+#
+#                try:
+#                    os.stat(dest_item_path)
+#                except EnvironmentError as e:
+#                    if e.errno == errno.ENOENT:
+#                        break
+#                    else:
+#                        raise
+#            else:
+#                raise Exception("Logical error")
+#
+#            os.rename(item_path, dest_item_path)
+#
+#        os.rmdir(temp_dir)
+#        status["last_downloads_sync"] = int(time.time())
+
+
+_default_options = {
+    "_on_execute": print_command,
+    "_stderr": psh.STDERR,
+    "_defer": False,
+}
+"""Default psh options."""
+
+cmd = psh.Sh(**_default_options)
+"""Custom Sh instance for command execution."""
+
+ssh = psh.Program("ssh", "-C", "-i", SSH_KEY, _shell = True, **_default_options)
+"""ssh program."""
+
+rsync = psh.Program("rsync", "--8-bit-output",
+    rsh = "ssh -i " + SSH_KEY, compress = True, quiet = True,
+    timeout = 5 * 60, **_default_options)
+"""rsync program."""
+
+
+if __name__ == "__main__":
+    main()
