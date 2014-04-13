@@ -4,5 +4,5 @@
 #
 
 for torrent in "$@"; do
-    mv "$torrent" ~/Dropbox/Torrents/$(uuidgen).torrent
+    mv "$torrent" ~/Cloud/Torrents/$(uuidgen).torrent
 done
