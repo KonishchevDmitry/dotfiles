@@ -12,7 +12,7 @@
     br = branch
     ci = commit -a
     co = checkout
-    gitk = log --pretty=oneline --graph --decorate --all
+    gitk = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
     gr = grep -n --color --extended-regexp
     me = merge --no-commit
     mt = mergetool --no-prompt

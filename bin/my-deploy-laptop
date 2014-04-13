@@ -39,13 +39,11 @@ uninstall_packages() {
     echo "Dropping selected alternatives..."
     local alternative
 
-    if [ -n "$port_pyver" ]; then
-        for alternative in pyflakes virtualenv; do
-            if port select --show $alternative > /dev/null 2>&1; then
-                sudo port select --set $alternative none ||:
-            fi
-        done
-    fi
+    for alternative in pyflakes python virtualenv; do
+        if port select --show $alternative > /dev/null 2>&1; then
+            sudo port select --set $alternative none ||:
+        fi
+    done
 
     for alternative in ack; do
         if [ -L $prefix/bin/$alternative ]; then
@@ -91,8 +89,8 @@ install_packages() {
     sudo port install htop mutt pstree tmux tree watch
 
     sudo port install p5-app-ack
-    which -s ack || [ -x $prefix/bin/ack-* ] &&
-        (cd $prefix/bin && sudo ln -s ack-* ack) || false
+    which -s ack || (
+        [ -x $prefix/bin/ack-* ] && cd $prefix/bin && sudo ln -s ack-* ack)
 
     # We already have git in the system, but this package brings to us git
     # completion and gitk tool
@@ -111,19 +109,24 @@ install_packages() {
     fi
 
     sudo port install python$port_pyver
+    sudo port select --set python python$port_pyver
+
     sudo port install py$port_pyver-pip
     sudo port install py$port_pyver-virtualenvwrapper
-    [ -z "$port_pyver" ] || sudo port select --set virtualenv virtualenv$port_pyver
+    sudo port select --set virtualenv virtualenv$port_pyver
 
+    sudo port install py$port_pyver-jedi
     sudo port install py$port_pyver-pyflakes
-    [ -z "$port_pyver" ] || sudo port select --set pyflakes py$port_pyver-pyflakes
+    sudo port select --set pyflakes py$port_pyver-pyflakes
 
-    sudo pip$pyver install pyvsb
-    sudo pip$pyver install $(github_package pydeposits)
-    sudo pip$pyver install $(git_package credit-calculator)
+    if [ "$role" = "personal" ]; then
+        sudo pip$pyver install pyvsb
+        sudo pip$pyver install $(github_package pydeposits)
+        sudo pip$pyver install $(git_package credit-calculator)
 
-    sudo port install npm
-    sudo npm install --global less
+        sudo port install npm
+        sudo npm install --global less
+    fi
 
     set +x; echo "Installation finished successfully."
 }
@@ -154,12 +157,25 @@ if [ "$(whoami)" = root ]; then
 fi
 
 prefix=/opt/local
+role="$LAPTOP_ROLE"
 
 # Python version which is used to install all packages
 pyver=3.3
 port_pyver=33
-
 install_meld=1
+
+case $LAPTOP_ROLE in
+    "job")
+        pyver=2.7
+        port_pyver=27
+        install_meld=0
+        ;;
+    "personal")
+        ;;
+    *)
+        die 'Invalid $LAPTOP_ROLE value.'
+        ;;
+esac
 
 case $1 in
     "install") question_user "install all required packages" && install_packages ;;
