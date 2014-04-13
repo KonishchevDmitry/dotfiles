@@ -31,19 +31,21 @@ check_system_directory() {
 }
 
 uninstall_packages() {
+    local version
+    local alternative
+
     echo "Stopping the services..."
 
     [ ! -f /Library/LaunchAgents/org.freedesktop.dbus-session.plist ] || \
         launchctl unload /Library/LaunchAgents/org.freedesktop.dbus-session.plist
 
-    echo "Dropping selected alternatives..."
-    local alternative
+    echo "Dropping all selected alternatives..."
 
-    for alternative in pyflakes python virtualenv; do
-        if port select --show $alternative > /dev/null 2>&1; then
-            sudo port select --set $alternative none ||:
-        fi
+    shopt -s nullglob
+    for alternative in $prefix/etc/select/*/current; do
+        sudo port select --set "$(basename $(dirname "$alternative"))" none
     done
+    shopt -u nullglob
 
     for alternative in ack; do
         if [ -L $prefix/bin/$alternative ]; then
@@ -53,9 +55,11 @@ uninstall_packages() {
 
     echo "Uninstalling all pip packages..."
 
-    if which pip$pyver > /dev/null; then
-        pip$pyver list | cut -f 1 -d ' ' | xargs sudo pip$pyver uninstall -y
-    fi
+    for version in $pyversions; do
+        if which pip$pyver > /dev/null; then
+            pip$pyver list | cut -f 1 -d ' ' | xargs sudo pip$pyver uninstall -y
+        fi
+    done
 
     echo "Uninstalling all npm packages..."
 
@@ -76,6 +80,8 @@ uninstall_packages() {
 }
 
 install_packages() {
+    local version
+
     echo "Installing all required packages..."; set -x
 
     sudo port selfupdate
@@ -108,10 +114,14 @@ install_packages() {
         echo "include \"$prefix/share/themes/Adwaita/gtk-2.0/gtkrc\"" > ~/.gtkrc-2.0
     fi
 
-    sudo port install python$port_pyver
-    sudo port select --set python python$port_pyver
+    for version in $port_pyversions; do
+        sudo port install python$version
+        sudo port install py$version-pip
+    done
 
-    sudo port install py$port_pyver-pip
+    sudo port select --set python python$port_pyver
+    sudo port select --set pip pip$port_pyver
+
     sudo port install py$port_pyver-virtualenvwrapper
     sudo port select --set virtualenv virtualenv$port_pyver
 
@@ -119,11 +129,11 @@ install_packages() {
     sudo port install py$port_pyver-pyflakes
     sudo port select --set pyflakes py$port_pyver-pyflakes
 
-    if [ "$role" = "personal" ]; then
-        sudo pip$pyver install pyvsb
-        sudo pip$pyver install $(github_package pydeposits)
-        sudo pip$pyver install $(git_package credit-calculator)
+    sudo pip$pyver install pyvsb
+    sudo pip$pyver install $(github_package pydeposits)
+    sudo pip$pyver install $(git_package credit-calculator)
 
+    if [ "$role" = "laptop.home" ]; then
         sudo port install npm
         sudo npm install --global less
     fi
@@ -157,23 +167,25 @@ if [ "$(whoami)" = root ]; then
 fi
 
 prefix=/opt/local
-role="$LAPTOP_ROLE"
+role="$(< ~/.role)"
 
 # Python version which is used to install all packages
 pyver=3.3
+pyversions="$pyver"
 port_pyver=33
+port_pyversions="$port_pyver"
 install_meld=1
 
-case $LAPTOP_ROLE in
-    "job")
-        pyver=2.7
-        port_pyver=27
+case $role in
+    "laptop.job")
         install_meld=0
+        pyversions="2.7 $pyver"
+        port_pyversions="27 $port_pyversions"
         ;;
-    "personal")
+    "laptop.home")
         ;;
     *)
-        die 'Invalid $LAPTOP_ROLE value.'
+        die 'Invalid ~/.role value.'
         ;;
 esac
 
