@@ -129,9 +129,9 @@ install_packages() {
     sudo port install py$port_pyver-pyflakes
     sudo port select --set pyflakes py$port_pyver-pyflakes
 
-    sudo pip$pyver install pyvsb
-    sudo pip$pyver install $(github_package pydeposits)
-    sudo pip$pyver install $(git_package credit-calculator)
+    sudo pip-$pyver install pyvsb
+    sudo pip-$pyver install $(github_package pydeposits)
+    sudo pip-$pyver install $(git_package credit-calculator)
 
     if [ "$role" = "laptop.home" ]; then
         sudo port install npm
