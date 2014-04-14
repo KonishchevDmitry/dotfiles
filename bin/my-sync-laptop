@@ -35,9 +35,6 @@ BACKUP_NAME = "laptop.home"
 BACKUP_PATH = "backups"
 """Directory to backup to."""
 
-#DOWNLOADS_PATH = "downloads"
-#"""Path to directory to receive downloads from."""
-
 
 BACKUP_EVERY = constants.DAY_SECONDS
 """Invoke backup every BACKUP_EVERY seconds."""
@@ -47,9 +44,6 @@ BACKUP_SYNC_CRITICAL = max(BACKUP_EVERY, 2 * constants.DAY_SECONDS)
 Consider as a bug the situation when last successful sync of backup was
 BACKUP_SYNC_CRITICAL seconds ago.
 """
-
-#SYNC_DOWNLOADS_EVERY = constants.DAY_SECONDS
-#"""Syncs downloads every SYNC_DOWNLOADS_EVERY seconds."""
 
 
 WIFI_STATUS_OFF = "off"
@@ -165,8 +159,6 @@ def sync(lock_file_fd, cron_mode):
 
         backup(status)
         sync_backup(status)
-        #sync_archive(status)
-        #syncs_downloads(status, cron_mode)
     finally:
         if status != orig_status:
             eintr_retry(os.lseek)(lock_file_fd, 0, os.SEEK_SET)
@@ -174,41 +166,6 @@ def sync(lock_file_fd, cron_mode):
             eintr_retry(os.write)(lock_file_fd, psys.b(json.dumps(status)))
 
         eintr_retry(os.close)(lock_file_fd)
-
-
-#def sync_archive(status):
-#    """Uploads archive data to the cloud."""
-#
-#    time_elapsed = int(time.time()) - status.get("last_archive_sync", 0)
-#    if time_elapsed < BACKUP_EVERY:
-#        LOG.info("Archive synced %s hours ago.", time_elapsed // constants.HOUR_SECONDS)
-#        return
-#
-#    wifi_status = get_wifi_status()
-#
-#    if wifi_status == WIFI_STATUS_LOCAL:
-#        LOG.info("We are using local Wi-Fi hotspot. Syncing archive...")
-#
-#        try:
-#            host = get_ssh_host(wifi_status)
-#
-#            rsync(
-#                os.path.expanduser("~/Archive/"),
-#                "{host}:{backup_path}/archive".format(
-#                    host = host, backup_path = BACKUP_PATH),
-#                archive = True, delete = True, delete_after = True,
-#                no_owner = True, no_group = True, append=True)
-#        except Exception as e:
-#            LOG.warning("Failed to upload archive to the cloud: %s", e)
-#        else:
-#            status["last_archive_sync"] = int(time.time())
-#    else:
-#        LOG.info("We aren't in the local Wi-Fi hotspot zone. Do not sync archive.")
-#
-#    time_elapsed = int(time.time()) - status.get("last_archive_sync", 0)
-#    if time_elapsed >= BACKUP_SYNC_CRITICAL:
-#        LOG.error("Last successful archive sync was %s days ago.",
-#            time_elapsed // constants.DAY_SECONDS)
 
 
 def sync_backup(status):
@@ -248,73 +205,6 @@ def sync_backup(status):
     if time_elapsed >= BACKUP_SYNC_CRITICAL:
         LOG.error("Last successful backup upload was %s days ago.",
             time_elapsed // constants.DAY_SECONDS)
-
-
-#def syncs_downloads(status, only_if_outdated):
-#    """Syncs downloads."""
-#
-#    time_elapsed = time.time() - status.get("last_downloads_sync", 0)
-#    if only_if_outdated and time_elapsed < SYNC_DOWNLOADS_EVERY:
-#        LOG.info("Downloads synced %s hours ago.", time_elapsed // constants.HOUR_SECONDS)
-#        return
-#
-#    wifi_status = get_wifi_status()
-#    if wifi_status != WIFI_STATUS_LOCAL:
-#        LOG.info("We aren't in the local Wi-Fi hotspot zone. Do not sync downloads.")
-#        return
-#
-#    LOG.info("We are using local Wi-Fi hotspot. Syncing downloads...")
-#
-#    temp_dir = os.path.expanduser("~/.Downloads")
-#    downloads_dir = os.path.expanduser("~/Downloads")
-#
-#    try:
-#        os.mkdir(temp_dir, 0o750)
-#    except EnvironmentError as e:
-#        if e.errno != errno.EEXIST:
-#            raise e
-#
-#    try:
-#        host = get_ssh_host(wifi_status)
-#
-#        rsync(host + ":" + DOWNLOADS_PATH + "/", temp_dir,
-#            recursive = True, times = True, append = True, remove_source_files = True)
-#
-#        process = (
-#            cmd.tree("-aN", "--dirsfirst", temp_dir, downloads_dir, _defer = True) |
-#                ssh(host, sh.cat(_stdout = psh.File(os.path.join(BACKUP_PATH, "downloads"))), _defer = True))
-#        process.execute()
-#
-#        ssh(host, "cd '{downloads_path}' && find . -type d -empty -delete".format(
-#            downloads_path = DOWNLOADS_PATH))
-#    except Exception as e:
-#        LOG.warning("Downloads sync failed: %s", e)
-#    else:
-#        for item in os.listdir(temp_dir):
-#            item_path = os.path.join(temp_dir, item)
-#
-#            LOG.debug("Moving %s to %s...", item_path, downloads_dir)
-#
-#            for dup_id in range(0, 10):
-#                if dup_id:
-#                    dest_item_path = os.path.join(downloads_dir, "DUP_{0}.{1}".format(dup_id, item))
-#                else:
-#                    dest_item_path = os.path.join(downloads_dir, item)
-#
-#                try:
-#                    os.stat(dest_item_path)
-#                except EnvironmentError as e:
-#                    if e.errno == errno.ENOENT:
-#                        break
-#                    else:
-#                        raise
-#            else:
-#                raise Exception("Logical error")
-#
-#            os.rename(item_path, dest_item_path)
-#
-#        os.rmdir(temp_dir)
-#        status["last_downloads_sync"] = int(time.time())
 
 
 _default_options = {
