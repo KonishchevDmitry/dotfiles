@@ -67,7 +67,7 @@ def backup(status):
     LOG.info("Backing up...")
 
     try:
-        cmd.pyvsb(cron = True)
+        cmd.pyvsb(cron=True)
     except Exception as e:
         LOG.error("Backup failed: %s", e)
 
@@ -106,8 +106,7 @@ def main():
     cron_mode = False
     debug_mode = False
 
-    cmd_options, args = getopt.gnu_getopt(
-        sys.argv[1:], "", [ "cron", "debug" ])
+    cmd_options, args = getopt.gnu_getopt(sys.argv[1:], "", ["cron", "debug"])
 
     for option, value in cmd_options[:]:
         if option == "--cron":
@@ -120,8 +119,8 @@ def main():
 
     # Setting up logging
     pcli.log.setup(
-        name = "sync-laptop", debug_mode = debug_mode,
-        level = logging.ERROR if not debug_mode and cron_mode else None)
+        name="sync-laptop", debug_mode=debug_mode,
+        level=logging.ERROR if not debug_mode and cron_mode else None)
 
     lock_file_path = os.path.expanduser("~/.laptop_sync")
 
@@ -133,7 +132,7 @@ def main():
         else:
             raise
     else:
-        sync(lock_file_fd, cron_mode)
+        sync(lock_file_fd)
 
 
 def print_command(process):
@@ -142,7 +141,7 @@ def print_command(process):
     LOG.debug("Executing %s", process)
 
 
-def sync(lock_file_fd, cron_mode):
+def sync(lock_file_fd):
     """Performs all necessary synchronization actions."""
 
     status = {}
@@ -191,9 +190,9 @@ def sync_backup(status):
             rsync(
                 os.path.normpath(pyvsb_config.BACKUP_ROOT) + "/",
                 "{host}:{backup_path}/{backup_name}".format(
-                    host = host, backup_path = BACKUP_PATH, backup_name = BACKUP_NAME),
-                archive = True, delete = True, delete_after = True,
-                no_owner = True, no_group = True)
+                    host=host, backup_path=BACKUP_PATH, backup_name=BACKUP_NAME),
+                archive=True, delete=True, delete_after=True,
+                no_owner=True, no_group=True)
         except Exception as e:
             LOG.warning("Failed to upload backups to the cloud: %s", e)
         else:
@@ -217,12 +216,12 @@ _default_options = {
 cmd = psh.Sh(**_default_options)
 """Custom Sh instance for command execution."""
 
-ssh = psh.Program("ssh", "-C", "-i", SSH_KEY, _shell = True, **_default_options)
+ssh = psh.Program("ssh", "-C", "-i", SSH_KEY, _shell=True, **_default_options)
 """ssh program."""
 
 rsync = psh.Program("rsync", "--8-bit-output",
-    rsh = "ssh -i " + SSH_KEY, compress = True, quiet = True,
-    timeout = 5 * 60, **_default_options)
+    rsh="ssh -i " + SSH_KEY, compress=True, quiet=True,
+    timeout=5 * 60, **_default_options)
 """rsync program."""
 
 
