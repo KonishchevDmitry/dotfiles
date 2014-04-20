@@ -1,0 +1,7 @@
+#!/bin/bash
+#
+# Sends downloaded torrent files to the torrent downloader
+#
+
+shopt -s nullglob
+my-download-torrent ~/Downloads/*.torrent
