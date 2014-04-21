@@ -31,6 +31,10 @@ check_system_directory() {
 }
 
 uninstall_packages() {
+    # PyCharm's IdeaVim plugin changes default keyboard settings. To revert
+    # them:
+    # defaults delete -g ApplePressAndHoldEnabled
+
     local version
     local alternative
 
@@ -43,21 +47,21 @@ uninstall_packages() {
 
     shopt -s nullglob
     for alternative in $prefix/etc/select/*/current; do
-        sudo port select --set "$(basename $(dirname "$alternative"))" none
+        sudo port select --set "$(basename $(dirname "$alternative"))" none ||:
     done
     shopt -u nullglob
 
     for alternative in ack; do
         if [ -L $prefix/bin/$alternative ]; then
-            unlink $prefix/bin/$alternative
+            sudo unlink $prefix/bin/$alternative
         fi
     done
 
     echo "Uninstalling all pip packages..."
 
     for version in $pyversions; do
-        if which pip$pyver > /dev/null; then
-            pip$pyver list | cut -f 1 -d ' ' | xargs sudo pip$pyver uninstall -y
+        if which pip-$version > /dev/null; then
+            pip-$version list | cut -f 1 -d ' ' | xargs sudo pip-$version uninstall -y
         fi
     done
 
@@ -102,6 +106,9 @@ install_packages() {
     # completion and gitk tool
     sudo port install git-core
 
+    # OS notifications from scripts
+    sudo port install terminal-notifier
+
     # Meld requires a LOT of packages including GTK and DBus
     #
     # Alternative to meld: opendiff (command line tool which runs XCode's
@@ -136,7 +143,9 @@ install_packages() {
     sudo pip-$pyver install $(github_package pydeposits)
     sudo pip-$pyver install $(git_package credit-calculator)
 
-    if [ "$role" = "laptop.home" ]; then
+    if [ "$role" = "laptop.job" ]; then
+        sudo port install mongodb
+    elif [ "$role" = "laptop.home" ]; then
         sudo port install npm
         sudo npm install --global less
     fi
