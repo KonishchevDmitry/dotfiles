@@ -9,6 +9,7 @@ import imp
 import json
 import logging
 import os
+import socket
 import sys
 import time
 
@@ -28,9 +29,6 @@ LOG = logging.getLogger("sync-laptop")
 
 SSH_KEY = os.path.expanduser("~/.ssh/keys/laptop-sync")
 """SSH private key."""
-
-BACKUP_NAME = "laptop.home"
-"""Backup name on the remote side."""
 
 BACKUP_PATH = "backups"
 """Directory to backup to."""
@@ -77,7 +75,19 @@ def backup(status):
 def get_ssh_host(wifi_status):
     """Returns an SSH host to sync with depending on current Wi-Fi status."""
 
-    return "pyvsb@" + ("server.lan" if wifi_status == WIFI_STATUS_LOCAL else "konishchev.ru")
+    host = "konishchev.ru"
+
+    if wifi_status == WIFI_STATUS_LOCAL:
+        local_host = "server.lan"
+        try:
+            socket.getaddrinfo(local_host, None)
+        except socket.gaierror:
+            # Local DNS is not available when using VPN
+            pass
+        else:
+            host = local_host
+
+    return "pyvsb@" + host
 
 
 def get_wifi_status():
@@ -132,7 +142,10 @@ def main():
         else:
             raise
     else:
-        sync(lock_file_fd)
+        with open(os.path.expanduser("~/.role")) as role_file:
+            role = role_file.read().strip()
+
+        sync(lock_file_fd, role)
 
 
 def print_command(process):
@@ -141,7 +154,7 @@ def print_command(process):
     LOG.debug("Executing %s", process)
 
 
-def sync(lock_file_fd):
+def sync(lock_file_fd, role):
     """Performs all necessary synchronization actions."""
 
     status = {}
@@ -157,7 +170,7 @@ def sync(lock_file_fd):
             orig_status = copy.deepcopy(status)
 
         backup(status)
-        sync_backup(status)
+        sync_backup(status, role)
     finally:
         if status != orig_status:
             eintr_retry(os.lseek)(lock_file_fd, 0, os.SEEK_SET)
@@ -167,7 +180,7 @@ def sync(lock_file_fd):
         eintr_retry(os.close)(lock_file_fd)
 
 
-def sync_backup(status):
+def sync_backup(status, role):
     """Uploads backup data to the cloud."""
 
     if status.get("last_backup_sync", 0) >= status["last_backup"]:
@@ -190,7 +203,7 @@ def sync_backup(status):
             rsync(
                 os.path.normpath(pyvsb_config.BACKUP_ROOT) + "/",
                 "{host}:{backup_path}/{backup_name}".format(
-                    host=host, backup_path=BACKUP_PATH, backup_name=BACKUP_NAME),
+                    host=host, backup_path=BACKUP_PATH, backup_name=role),
                 archive=True, delete=True, delete_after=True,
                 no_owner=True, no_group=True)
         except Exception as e:
