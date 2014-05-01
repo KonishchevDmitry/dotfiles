@@ -5,15 +5,6 @@
 
 cd ~/.vim
 
-# Download spell files
-mkdir -p spell
-for lang in ru en; do
-    for ext in spl sug; do
-        echo;echo "Downloading $lang.$ext.."
-        curl http://ftp.vim.org/vim/runtime/spell/$lang.utf-8.$ext -o spell/$lang.utf-8.$ext
-    done
-done
-
 # Update all plugins
 for plugin in pathogen bundle/*; do
     echo;echo "Updating $plugin..."
