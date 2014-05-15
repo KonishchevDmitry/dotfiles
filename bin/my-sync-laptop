@@ -4,7 +4,6 @@
 
 import copy
 import getopt
-import errno
 import imp
 import json
 import logging
@@ -44,14 +43,14 @@ BACKUP_SYNC_CRITICAL seconds ago.
 """
 
 
-WIFI_STATUS_OFF = "off"
-"""Wi-Fi is turned off."""
+NETWORK_STATUS_OFF = "off"
+"""Network is not available."""
 
-WIFI_STATUS_INTERNET = "on"
-"""Wi-Fi is on but the server is not in out LAN."""
+NETWORK_STATUS_INTERNET = "on"
+"""Network is available but the server is not in our LAN."""
 
-WIFI_STATUS_LOCAL = "local"
-"""Wi-Fi is on and the server is in out LAN."""
+NETWORK_STATUS_LOCAL = "local"
+"""Network is available and the server is in out LAN."""
 
 
 def backup(status):
@@ -72,12 +71,12 @@ def backup(status):
     status["last_backup"] = int(time.time())
 
 
-def get_ssh_host(wifi_status):
-    """Returns an SSH host to sync with depending on current Wi-Fi status."""
+def get_ssh_host(network_status):
+    """Returns an SSH host to sync with depending on current network status."""
 
     host = "konishchev.ru"
 
-    if wifi_status == WIFI_STATUS_LOCAL:
+    if network_status == NETWORK_STATUS_LOCAL:
         local_host = "server.lan"
         try:
             socket.getaddrinfo(local_host, None)
@@ -90,10 +89,13 @@ def get_ssh_host(wifi_status):
     return "pyvsb@" + host
 
 
-def get_wifi_status():
-    """Returns current Wi-Fi status."""
+def get_network_status():
+    """Returns current network status."""
 
     airport_path = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport"
+
+    if not sh.ifconfig("en3", _ok_statuses=(0, 1)).execute().status():
+        return NETWORK_STATUS_INTERNET
 
     for line in sh(airport_path)("-I"):
         name, value = line.split(":", 1)
@@ -102,11 +104,11 @@ def get_wifi_status():
 
         if name == "SSID" and value:
             if value == "offline":
-                return WIFI_STATUS_LOCAL
+                return NETWORK_STATUS_LOCAL
             else:
-                return WIFI_STATUS_INTERNET
+                return NETWORK_STATUS_INTERNET
 
-    return WIFI_STATUS_OFF
+    return NETWORK_STATUS_OFF
 
 
 def main():
@@ -186,13 +188,13 @@ def sync_backup(status, role):
     if status.get("last_backup_sync", 0) >= status["last_backup"]:
         return
 
-    wifi_status = get_wifi_status()
+    network_status = get_network_status()
 
-    if wifi_status != WIFI_STATUS_OFF:
-        LOG.info("Wi-Fi is connected. Uploading backups to the cloud...")
+    if network_status != NETWORK_STATUS_OFF:
+        LOG.info("Network is available. Uploading backups to the cloud...")
 
         try:
-            host = get_ssh_host(wifi_status)
+            host = get_ssh_host(network_status)
 
             pyvsb_config = imp.load_source("pyvsb_config",
                 os.path.expanduser("~/.pyvsb.conf"))
@@ -211,7 +213,7 @@ def sync_backup(status, role):
         else:
             status["last_backup_sync"] = int(time.time())
     else:
-        LOG.info("Wi-Fi is not connected. Don't upload backups to the cloud.")
+        LOG.info("Network is not available. Don't upload backups to the cloud.")
 
     time_elapsed = status["last_backup"] - status.get("last_backup_sync", 0)
     if time_elapsed >= BACKUP_SYNC_CRITICAL:
