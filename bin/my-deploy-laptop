@@ -144,7 +144,7 @@ install_packages() {
     sudo pip-$pyver install $(git_package credit-calculator)
 
     if [ "$role" = "laptop.job" ]; then
-        sudo port install mongodb
+        sudo port install encfs mongodb
     elif [ "$role" = "laptop.home" ]; then
         sudo port install npm
         sudo npm install --global less
@@ -196,7 +196,6 @@ install_meld=1
 
 case $role in
     "laptop.job")
-        install_meld=0
         ;;
     "laptop.home")
         ;;
