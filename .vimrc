@@ -45,8 +45,12 @@ set shiftwidth=4
 " Expand tabs to spaces
 set expandtab
 
-" Копирует отступ от предыдущей строки
+" Copy indent from current line when starting a new line
 set autoindent
+
+" Makes backspace behave like in traditional editors + fixes some weird
+" behaviour of backspace when autoindent is on
+set backspace=indent,eol,start
 
 
 " Enable syntax highlighting
