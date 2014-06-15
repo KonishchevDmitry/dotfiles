@@ -8,7 +8,7 @@ cd ~/.vim
 # Update all plugins
 for plugin in pathogen bundle/*; do
     echo;echo "Updating $plugin..."
-    ( cd "$plugin" && git checkout master && git pull && git submodule update )
+    ( cd "$plugin" && git checkout master && git pull && git submodule update --init )
 done
 
 # Recompile xkb-switch library
