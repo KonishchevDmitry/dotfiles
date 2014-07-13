@@ -11,6 +11,10 @@ if [ "$(uname)" = Darwin ]; then
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
 
+    # Solve problems with installing python modules that contain C extensions
+    export CFLAGS="-I /opt/local/include $CFLAGS"
+    export LDFLAGS="-L /opt/local/lib $LDFLAGS"
+
     # Add bin directory of main Python interpreter to $PATH to be able to
     # locate package binaries installed by pip
     if python_path="$(which python)"; then
