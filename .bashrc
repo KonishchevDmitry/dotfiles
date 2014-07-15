@@ -12,10 +12,16 @@ PS2='> '
 
 # Include custom settings
 if [ -d ~/.bashrc.d ]; then
+    nullglob="$(shopt -p nullglob)"
+    shopt -s nullglob
+
     for file in ~/.bashrc.d/*.sh; do
-        [ -r $file ] && . $file
+        . $file
     done
+
+    $nullglob
     unset file
+    unset nullglob
 fi
 
 # Finalize command line prompt
