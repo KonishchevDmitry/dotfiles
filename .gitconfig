@@ -20,6 +20,7 @@
     pt = push --tags
     rb = rebase --committer-date-is-author-date
     st = status
+    su = submodule update --init --recursive
 [push]
     default = current
 
