@@ -4,7 +4,7 @@
 HISTSIZE=1000
 
 # The maximum number of lines contained in the history file
-HISTFILESIZE=2000
+HISTFILESIZE=10000
 
 # Do not write the following commands to the history
 HISTIGNORE="cd"
