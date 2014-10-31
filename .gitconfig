@@ -26,20 +26,10 @@
 
 [merge]
 	#tool = meld
-	tool = Kaleidoscope
+	tool = vimdiff
 [mergetool]
     keepBackup = false
     keepTemporaries = false
 	prompt = false
 [mergetool "meld"]
     cmd = "meld $LOCAL $MERGED $REMOTE"
-[mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustExitCode = true
-
-[diff]
-	tool = Kaleidoscope
-[difftool]
-	prompt = false
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
