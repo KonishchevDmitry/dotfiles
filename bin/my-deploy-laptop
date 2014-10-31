@@ -15,6 +15,10 @@ github_package() {
     echo -n "https://github.com/KonishchevDmitry/$1/archive/master.zip"
 }
 
+pyver_to_port_pyver() {
+    tr -d . <<< "$1"
+}
+
 check_system_directory() {
     local system_dir="$1"
     local white_list="$2"
@@ -50,12 +54,6 @@ uninstall_packages() {
         sudo port select --set "$(basename $(dirname "$alternative"))" none ||:
     done
     shopt -u nullglob
-
-    for alternative in ack; do
-        if [ -L $prefix/bin/$alternative ]; then
-            sudo unlink $prefix/bin/$alternative
-        fi
-    done
 
     echo "Uninstalling all pip packages..."
 
@@ -96,15 +94,11 @@ install_packages() {
     # emulator
     sudo port install bash bash-completion
 
-    sudo port install htop mutt pstree tmux tree watch
-
-    sudo port install p5-app-ack
-    which -s ack || (
-        [ -x $prefix/bin/ack-* ] && cd $prefix/bin && sudo ln -s ack-* ack)
+    sudo port install ack htop mutt pstree tmux tree watch
 
     # We already have git in the system, but this package brings to us git
     # completion and gitk tool
-    sudo port install git-core
+    sudo port install git
 
     # OS notifications from scripts
     sudo port install terminal-notifier
@@ -126,22 +120,22 @@ install_packages() {
         sudo port install py$version-pip
     done
 
-    sudo port select --set python python$port_pyver
-    sudo port select --set pip pip$port_pyver
+    sudo port select --set python python$port_default_pyver
+    sudo port select --set pip pip$port_default_pyver
 
-    sudo port install py$port_pyver-virtualenvwrapper
-    sudo port select --set virtualenv virtualenv$port_pyver
+    sudo port install py$port_default_pyver-virtualenvwrapper
+    sudo port select --set virtualenv virtualenv$port_default_pyver
 
     sudo pip-$default_pyver install jedi
     sudo port install vim +python$port_default_pyver
     sudo port install MacVim +python$port_default_pyver
 
-    sudo port install py$port_pyver-pyflakes
-    sudo port select --set pyflakes py$port_pyver-pyflakes
+    sudo port install py$port_default_pyver-pyflakes
+    sudo port select --set pyflakes py$port_default_pyver-pyflakes
 
-    sudo pip-$pyver install pyvsb
-    sudo pip-$pyver install $(github_package pydeposits)
-    sudo pip-$pyver install $(git_package credit-calculator)
+    sudo pip-$py3ver install pyvsb
+    sudo pip-$py3ver install $(github_package pydeposits)
+    #sudo pip-$py3ver install $(git_package credit-calculator)
 
     if [ "$role" = "laptop.job" ]; then
         sudo port install encfs mongodb
@@ -183,16 +177,15 @@ role="$(< ~/.role)"
 
 # MacPorts default Python version
 default_pyver=2.7
-port_default_pyver=27
+port_default_pyver="$(pyver_to_port_pyver "$default_pyver")"
 
-# Python version which is used to install all packages
-pyver=3.3
-port_pyver=33
+# Python 3 version
+py3ver=3.4
 
-pyversions="2.7 3.3"
-port_pyversions="27 33"
+pyversions="$default_pyver $py3ver"
+port_pyversions="$(pyver_to_port_pyver "$pyversions")"
 
-install_meld=1
+install_meld=0
 
 case $role in
     "laptop.job")
