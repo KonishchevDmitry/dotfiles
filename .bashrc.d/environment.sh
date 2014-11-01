@@ -15,13 +15,16 @@ if [ "$(uname)" = Darwin ]; then
     export CFLAGS="-I /opt/local/include $CFLAGS"
     export LDFLAGS="-L /opt/local/lib $LDFLAGS"
 
-    # Add bin directory of main Python interpreter to $PATH to be able to
+    # Add bin directory of Python interpreter to $PATH to be able to
     # locate package binaries installed by pip
-    if python_path="$(which python)"; then
-        python_path="$(python -c '__import__("sys").stdout.write(__import__("sys").prefix)')/bin"
-        grep -qxF "$python_path" <<< "${PATH//:/$'\n'}" || PATH="$PATH:$python_path"
-    fi
-    unset python_path
+    for python in python2.7 python3.4; do
+        if which -s $python; then
+            python_bin_path="$($python -c '__import__("sys").stdout.write(__import__("sys").prefix)')/bin"
+            grep -qxF "$python_bin_path" <<< "${PATH//:/$'\n'}" || PATH="$PATH:$python_bin_path"
+            unset python_bin_path
+        fi
+    done
+    unset python
 elif [ -f /etc/debian_version ]; then
     # Debian package building
     export DEBEMAIL='konishchev@gmail.com'
@@ -31,12 +34,6 @@ fi
 # Set up virtualenvwrapper
 if virtualenvwrapper=$(which virtualenvwrapper.sh); then
     export PROJECT_HOME=~/programs
-
-    if python_path="$(which python3)"; then
-        export VIRTUALENVWRAPPER_PYTHON="$python_path"
-    fi
-    unset python_path
-
     . "$virtualenvwrapper"
 fi
 unset virtualenvwrapper
