@@ -94,7 +94,7 @@ install_packages() {
     # emulator
     sudo port install bash bash-completion
 
-    sudo port install ack htop mutt pstree tmux tree watch
+    sudo port install ack httpie htop mutt pstree subversion tmux tree watch
 
     # We already have git in the system, but this package brings to us git
     # completion and gitk tool
@@ -115,6 +115,7 @@ install_packages() {
         echo "include \"$prefix/share/themes/Adwaita/gtk-2.0/gtkrc\"" > ~/.gtkrc-2.0
     fi
 
+    sudo port install py-ipython
     for version in $port_pyversions; do
         sudo port install python$version
         sudo port install py$version-pip
@@ -132,6 +133,8 @@ install_packages() {
 
     sudo port install py$port_default_pyver-pyflakes
     sudo port select --set pyflakes py$port_default_pyver-pyflakes
+
+    sudo pip-$default_pyver install pythonpy
 
     sudo pip-$py3ver install pyvsb
     sudo pip-$py3ver install $(github_package pydeposits)
