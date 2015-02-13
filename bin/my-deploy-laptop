@@ -94,7 +94,7 @@ install_packages() {
     # emulator
     sudo port install bash bash-completion
 
-    sudo port install ack httpie htop mutt pstree subversion tmux tree watch
+    sudo port install ack getopt httpie htop mutt pstree subversion tmux tree watch
 
     # We already have git in the system, but this package brings to us git
     # completion and gitk tool
