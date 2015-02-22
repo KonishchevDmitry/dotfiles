@@ -94,6 +94,11 @@ if !has("gui_running") && &t_Co < 256
     set t_Co=256
 endif
 
+" Set different color scheme for vimdiff
+if &diff
+    colorscheme delek
+endif
+
 
 " Source all configuration files
 source ~/.vim/config/binary-file-support.vim
