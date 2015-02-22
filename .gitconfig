@@ -1,5 +1,6 @@
 [core]
     editor = vim
+    excludesfile = ~/.gitignore.global
 [user]
     name = Dmitry Konishchev
     email = konishchev@gmail.com
