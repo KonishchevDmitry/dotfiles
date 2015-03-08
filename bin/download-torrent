@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Downloads the specified torrent(s)
+# Sends the specified torrent files to torrent downloader
 #
 
 for torrent in "$@"; do

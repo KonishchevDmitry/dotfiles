@@ -4,4 +4,4 @@
 #
 
 shopt -s nullglob
-my-download-torrent ~/Downloads/*.torrent
+download-torrent ~/Downloads/*.torrent
