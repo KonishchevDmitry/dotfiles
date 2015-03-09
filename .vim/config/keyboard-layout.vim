@@ -1,11 +1,10 @@
 " Keyboard layout switching
 
 if has('macunix')
-    " Native Mac OS X keyboard layout switching via KeyboardLayoutSwitcher
-    " plugin
+    " Native OS X keyboard layout switching via KeyboardLayoutSwitcher plugin
 
     " Store layout on InsertLeave and restore on InsertEnter
-    let g:kls_insertEnterRestoresLast = 1
+    "let g:kls_insertEnterRestoresLast = 1
 elseif has('unix') && $DISPLAY != ''
     " Native X11 keyboard layout switching via vim-xkbswitch plugin
 

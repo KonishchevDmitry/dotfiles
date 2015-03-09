@@ -1,18 +1,131 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # Updates all Vim plugins to the latest version
 #
 
-cd ~/.vim
+set -eu
 
-# Update all plugins
-for plugin in pathogen bundle/*; do
-    echo;echo "Updating $plugin..."
-    ( cd "$plugin" && git checkout master && git pull && git submodule update --init )
-done
+show_help() {
+    cat <<EOF
+usage: $1 [-h] [-f]
 
-# Recompile xkb-switch library
-if [ "$(uname)" != "Darwin" ]; then
-    echo;echo "Compile xkb-switch..."
-    (cd "bundle/xkb-switch" && cmake . && make && mv libxkbswitch.so ~/.vim && git clean -df)
-fi
+Update all Vim plugins
+
+optional arguments:
+  -h, --help    show this help message and exit
+  -f, --force   force reinstall from scratch
+EOF
+}
+
+parse_args() {
+    eval set -- "$@"
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -h) show_help "$0"; exit 0;;
+            -f|--force) force_reinstall=1;;
+            --) shift; break;;
+            (-*) die "Unrecognized option: $1.";;
+            (*) break;;
+        esac
+        shift
+    done
+
+    [ $# -eq 0 ] || die "Invalid parameter: $1."
+}
+
+die() {
+    echo "Error:" "$@" >&2
+    exit 1
+}
+
+update_plugin() {
+    local full_name="$1"
+    local name="${full_name##*/}"
+    local path="${2:-$plugin_dir/$name}"
+
+    echo
+
+    if [ -e "$path" ]; then
+        echo "Updating $name..."
+        (cd "$path" && git pull)
+    else
+        echo "Installing $name..."
+        git clone "https://github.com/$full_name.git" "$path"
+    fi
+
+    if [ -e "$path/.gitmodules" ]; then
+        (cd "$path" && git submodule update --init)
+    fi
+}
+
+sync_plugins() {
+    local plugins="$1"
+
+    local plugin
+    local plugin_names
+    local installed_plugins
+
+    local deleted_plugins deleted_plugin
+
+    plugin_names="$(sed 's#^.*/##' <<< "$plugins")"
+    installed_plugins="$(cd "$plugin_dir" && ls -1)"
+    deleted_plugins="$(comm -23 <(sort <<< "$installed_plugins") <(sort <<< "$plugin_names"))"
+
+    for deleted_plugin in $deleted_plugins; do
+        echo "Removing $deleted_plugin..."
+        rm -rf "$plugin_dir/$deleted_plugin"
+    done
+
+    for plugin in $plugins; do
+        update_plugin "$plugin"
+    done
+}
+
+main() {
+    echo "Syncing Vim plugins..."
+
+    [ "$force_reinstall" -eq 0 ] || rm -rf ~/.vim/pathogen "$plugin_dir"
+    [ -d "$plugin_dir" ] || mkdir "$plugin_dir"
+
+    local plugins='
+        scrooloose/syntastic
+        vim-scripts/OmniCppComplete
+        davidhalter/jedi-vim
+        scrooloose/nerdtree
+        jistr/vim-nerdtree-tabs
+        kien/ctrlp.vim
+        junegunn/vim-easy-align
+        szw/vim-ctrlspace
+        Glench/Vim-Jinja2-Syntax
+        groenewege/vim-less
+    '
+
+    if [ "$(uname)" = Darwin ]; then
+        plugins+='
+            cypok/KeyboardLayoutSwitcher
+        '
+    fi
+
+    if [ "$(uname)" = Linux -a -n "${DISPLAY:-}" ]; then
+        plugins+='
+            lyokha/vim-xkbswitch
+            ierton/xkb-switch
+        '
+    fi
+
+    sync_plugins "$plugins"
+    update_plugin tpope/vim-pathogen ~/.vim/pathogen
+
+    if [ "$(uname)" = Linux -a -n "${DISPLAY:-}" ]; then
+        echo;echo "Compile xkb-switch..."
+        (cd "$plugin_dir/xkb-switch" && cmake . && make && mv libxkbswitch.so ~/.vim && git clean -df)
+    fi
+}
+
+force_reinstall=0
+plugin_dir=~/.vim/bundle
+
+options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
+parse_args "$options"
+main
