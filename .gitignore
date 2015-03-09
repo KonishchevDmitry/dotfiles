@@ -1,5 +1,3 @@
-/.vim/libxkbswitch.so
+/.git-dir
 /.vim/spell
-/.vim/tags
 /.vim/view
-/.vim/.netrwhist
