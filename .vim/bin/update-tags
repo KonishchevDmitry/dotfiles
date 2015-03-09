@@ -1,8 +1,9 @@
-#!/bin/sh -e
+#!/bin/sh
 #
 # Updates ctags for all system libraries
 #
 
+set -eu
 tags_dir=~/.vim/tags
 
 update() {
