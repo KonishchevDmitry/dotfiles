@@ -39,10 +39,24 @@ die() {
     exit 1
 }
 
+cleanup() {
+    [ -z "$temp_dir" ] || rm -rf "$temp_dir"
+}
+
+create_git_ssh_command() {
+    [ ! -x "$git_ssh" ] || return 0
+
+    cat > "$git_ssh" <<EOF
+#!/bin/sh
+exec ssh -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "\$@"
+EOF
+    chmod a+x "$git_ssh"
+}
+
 clone_repository() {
     local url="$1"
-    rm -rf "$clone_dir" && \
-        git clone --no-checkout "$url" "$clone_dir" && \
+    rm -rf "$clone_dir" && create_git_ssh_command && \
+        GIT_SSH="$git_ssh" git clone --no-checkout "$url" "$clone_dir" && \
         mv "$clone_dir/.git" "$git_dir" && rmdir "$clone_dir"
 }
 
@@ -76,5 +90,11 @@ clone_dir=~/.dotfiles
 
 options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
 parse_args "$options"
+
+temp_dir=""
+trap cleanup EXIT
+trap "exit 1" INT TERM QUIT
+temp_dir="$(mktemp -d "/var/tmp/dotfiles.XXXXXX")"
+git_ssh="$temp_dir/git-ssh"
 
 main
