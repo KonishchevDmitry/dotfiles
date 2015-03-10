@@ -52,6 +52,7 @@ update_plugin() {
     else
         echo "Installing $name..."
         git clone "https://github.com/$full_name.git" "$path"
+        (cd "$path" && git gc --aggressive)
     fi
 
     if [ -e "$path/.gitmodules" ]; then

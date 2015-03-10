@@ -77,6 +77,8 @@ main() {
     else
         clone_repository git@github.com:KonishchevDmitry/dotfiles.git || \
             clone_repository https://github.com/KonishchevDmitry/dotfiles.git
+
+        dotfiles_git gc --aggressive
         dotfiles_git reset --hard
     fi
 
