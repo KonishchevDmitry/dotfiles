@@ -1,0 +1,8 @@
+#!/bin/bash
+#
+# Vagrant user prep script
+#
+
+set -eu
+sudo apt-get install -y git curl
+sh <(curl https://raw.githubusercontent.com/KonishchevDmitry/dotfiles/master/bin/setup-dotfiles)
