@@ -5,7 +5,7 @@
 export VAGRANT_USER_PREP_SCRIPT=~/scripts/vagrant-user-prep
 
 # ssh to Vagrant's tmux session
-_vagrant_ssh_tmux() {
+vagrant-ssh-tmux() {
     local command="${1:-true}"
 
     vagrant ssh -- -t "
@@ -17,8 +17,5 @@ _vagrant_ssh_tmux() {
     "
 }
 
-# ssh to Vagrant's tmux session
-alias vagrant-ssh-tmux=_vagrant_ssh_tmux
-
 # ssh to Vagrant's tmux session inside of the development virtualenv
-alias vagrant-ssh-virtualenv='_vagrant_ssh_tmux "tmux send-keys \"workon vagrant\" Enter"'
+alias vagrant-ssh-virtualenv='vagrant-ssh-tmux "tmux send-keys \"workon vagrant\" Enter"'
