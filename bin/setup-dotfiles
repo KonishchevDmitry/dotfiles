@@ -22,7 +22,7 @@ parse_args() {
 
     while [ $# -gt 0 ]; do
         case "$1" in
-            -h) show_help "$0"; exit 0;;
+            -h|--help) show_help "$0"; exit 0;;
             -f|--force) force_reinstall=1;;
             --) shift; break;;
             (-*) die "Unrecognized option: $1.";;
