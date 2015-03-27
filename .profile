@@ -7,16 +7,11 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
-# MacPorts
-if [ "$(uname)" = Darwin ]; then
-    for macports_dir in /opt/local/{s,}bin; do
-        [ -d "$macports_dir" ] && PATH="$macports_dir:$PATH"
-    done
-    unset macports_dir
-fi
+# Homebrew for OS X
+[ "$(uname)" = Darwin -a -d /usr/local/bin ] && PATH="/usr/local/bin:${PATH//\/usr\/local\/bin:/}"
 
 # If running bash include .bashrc if it exists
-[ -n "$BASH_VERSION" ] && [ -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
+[ -n "$BASH_VERSION" -a -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
 
 # Set PATH so it includes user's private bin if it exists
 [ -d "$HOME/bin" ] && PATH="$HOME/bin:$PATH"

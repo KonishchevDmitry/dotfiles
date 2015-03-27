@@ -52,6 +52,7 @@ update_plugin() {
     else
         echo "Installing $name..."
         git clone "https://github.com/$full_name.git" "$path"
+        (cd "$path" && git gc --aggressive)
     fi
 
     if [ -e "$path/.gitmodules" ]; then
@@ -126,6 +127,11 @@ main() {
 force_reinstall=0
 plugin_dir=~/.vim/bundle
 
-options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
+if [ "$(uname)" = Darwin -a "$(which getopt)" = /usr/bin/getopt ]; then
+    options="$(getopt hf "$@")"
+else
+    options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
+fi
+
 parse_args "$options"
 main

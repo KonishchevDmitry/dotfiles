@@ -22,7 +22,7 @@ parse_args() {
 
     while [ $# -gt 0 ]; do
         case "$1" in
-            -h) show_help "$0"; exit 0;;
+            -h|--help) show_help "$0"; exit 0;;
             -f|--force) force_reinstall=1;;
             --) shift; break;;
             (-*) die "Unrecognized option: $1.";;
@@ -68,7 +68,7 @@ main() {
     local force_params=""
 
     if [ "$force_reinstall" -ne 0 ]; then
-        force_params="--force"
+        force_params="-f"
         rm -rf "$git_dir"
     fi
 
@@ -77,6 +77,8 @@ main() {
     else
         clone_repository git@github.com:KonishchevDmitry/dotfiles.git || \
             clone_repository https://github.com/KonishchevDmitry/dotfiles.git
+
+        dotfiles_git gc --aggressive
         dotfiles_git reset --hard
     fi
 
@@ -88,7 +90,12 @@ force_reinstall=0
 git_dir=~/.git-dir
 clone_dir=~/.dotfiles
 
-options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
+if [ "$(uname)" = Darwin -a "$(which getopt)" = /usr/bin/getopt ]; then
+    options="$(getopt hf "$@")"
+else
+    options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
+fi
+
 parse_args "$options"
 
 temp_dir=""

@@ -1,5 +1,5 @@
 /.git-dir
 /.vim/bundle
-/.vim/spell
 /.vim/pathogen
+/.vim/spell
 /.vim/view
