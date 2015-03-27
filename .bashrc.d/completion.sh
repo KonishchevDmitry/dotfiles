@@ -1,7 +1,7 @@
 # Enable programmable completion features
-# Note: in OS X bash completion will work only in /opt/local/bin/bash
+# Note: in OS X bash completion don't work in stock /bin/bash
 if ! shopt -oq posix; then
-    [ "$(uname)" = Darwin ] && prefix=/opt/local || prefix=""
+    [ "$(uname)" = Darwin ] && prefix=/usr/local || prefix=""
 
     if [ -f "$prefix/usr/share/bash-completion/bash_completion" ]; then
         . "$prefix/usr/share/bash-completion/bash_completion"

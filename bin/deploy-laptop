@@ -1,11 +1,14 @@
-#!/bin/bash -e
+#!/bin/bash
 #
 # Since OS X doesn't have a decent packaging system with a lot of packages,
-# many of them are installed using Mac Ports, pip and npm. In this case it's
+# all of them are installed using Homebrew, pip and npm. In this case it's
 # much easier to handle all of this mess by script like this which allows to
-# clear all accumulated garbage and reinstall all required foreign packages.
+# clear all accumulated garbage and reinstall all required packages by one
+# simple command.
 #
 
+set -eu
+shopt -s extglob
 
 git_package() {
     echo -n "git+ssh://git@konishchev.ru/~git/$1.git"
@@ -15,21 +18,68 @@ github_package() {
     echo -n "https://github.com/KonishchevDmitry/$1/archive/master.zip"
 }
 
-pyver_to_port_pyver() {
-    tr -d . <<< "$1"
+uninstall_pip_packages() {
+    echo "Uninstalling pip packages..."
+
+    local pip package
+
+    shopt -s nullglob
+        for pip in "$prefix"/bin/pip+([[:digit:]]).+([[:digit:]]) ; do
+            for package in $("$pip" list | cut -f 1 -d ' '); do
+                # Don't uninstall pip and setuptools to not break pip
+                [ "$package" != "pip" -a "$package" != "setuptools" ] || continue
+
+                # Filter out system packages
+                "$pip" show "$package" | egrep "^Location: $prefix" >/dev/null || continue
+
+                "$pip" uninstall -y "$package"
+            done
+        done
+    shopt -u nullglob
 }
 
-check_system_directory() {
-    local system_dir="$1"
+uninstall_brew_distro() {
+    echo "Uninstalling Homebrew distributive files..."
+
+    [ -d "$prefix/.git" ] || return 0
+
+    (
+        cd "$prefix"
+
+        git ls-files -z | xargs -0 rm -f
+        [ ! -d Library ] || find Library -name .gitignore -print0 | xargs -0 rm
+
+        git ls-tree --name-only -d -r -z HEAD | sort -rz | xargs -0 -n 1 -- sh -c '
+            if [ -d "$0" ] && [ -z "$(ls -A "$0")" ]; then
+                rmdir "$0"
+            fi
+        '
+
+        rm -rf .git
+    )
+}
+
+cleanup_brew_files() {
+    cd "$prefix" && (
+        rm -f share/info/dir
+        rm -rf lib/python+([[:digit:]]).+([[:digit:]])
+
+        for dir in bin lib share Library Cellar; do
+            [ ! -d "$dir" ] || find "$dir" -type d -empty -delete
+        done
+    )
+}
+
+check_directory() {
+    local dir="$1"
     local white_list="$2"
 
-    [ -d "$system_dir" ] || return 0
+    [ -d "$dir" ] || return 0
 
-    local contents="$(ls -1 "$system_dir")"
-    [ -z "$white_list" ] || contents="$(echo "$contents" | egrep -v "$white_list")" ||:
+    local contents="$(ls -1A "$dir" | egrep -v "$white_list")"
 
     if [ -n "$contents" ]; then
-        echo "Warning: System directory $system_dir contains the following files:" >&2
+        echo "Warning: $dir contains the following files:" >&2
         echo "$contents" >&2
     fi
 }
@@ -39,113 +89,57 @@ uninstall_packages() {
     # them:
     # defaults delete -g ApplePressAndHoldEnabled
 
-    local version
-    local alternative
+    [ -d "$prefix" ] || die "Homebrew is not installed to $prefix."
 
-    echo "Stopping the services..."
+    uninstall_pip_packages
 
-    [ ! -f /Library/LaunchAgents/org.freedesktop.dbus-session.plist ] || \
-        launchctl unload /Library/LaunchAgents/org.freedesktop.dbus-session.plist
-
-    echo "Dropping all selected alternatives..."
-
-    shopt -s nullglob
-    for alternative in $prefix/etc/select/*/current; do
-        sudo port select --set "$(basename $(dirname "$alternative"))" none ||:
-    done
-    shopt -u nullglob
-
-    echo "Uninstalling all pip packages..."
-
-    for version in $pyversions; do
-        if which pip-$version > /dev/null; then
-            pip-$version list | cut -f 1 -d ' ' | xargs sudo pip-$version uninstall -y
-        fi
-    done
-
-    echo "Uninstalling all npm packages..."
-
-    if which npm > /dev/null; then
-        npm ls -gp | awk -F/ '/node_modules/ && !/node_modules.*node_modules/ {print $NF}' | egrep -v '^npm$' | sudo xargs npm -g rm
+    if [ -e "$prefix/bin/brew" ]; then
+        echo "Uninstalling brew packages..."
+        brew list | xargs brew uninstall
+        brew tap | xargs brew untap
     fi
 
-    echo "Uninstalling all MacPorts packages..."
-
-    if [ -n "$(port list installed)" ]; then
-        sudo port uninstall installed
-    fi
-
-    check_system_directory $prefix/Library/Frameworks/Python.framework
-    check_system_directory $prefix/bin '^(daemondo|port|portf|portindex|portmirror)$'
+    uninstall_brew_distro
+    cleanup_brew_files
 
     echo "Uninstallation finished successfully."
+
+    check_directory "$prefix" '^(bin|etc|munki|var)$'
 }
 
 install_packages() {
-    local version
+    echo "Updating Homebrew..."
 
-    echo "Installing all required packages..."; set -x
+    if which -s brew; then
+        brew update
+        brew upgrade
+    else
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        brew doctor
+    fi
 
-    sudo port selfupdate
+    echo "Installing all packages..."; set -x
 
-    # Mac Port's bash in contrast to system's bash supports completion
+    # Homebrew's bash in contrast to system's bash supports completion
     #
     # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal
     # emulator
-    sudo port install bash bash-completion
+    brew install bash bash-completion
+    brew install homebrew/completions/pip-completion homebrew/completions/vagrant-completion
 
-    sudo port install ack dsh getopt httpie htop mutt pstree subversion tmux tree watch
+    brew install gnu-getopt
+    brew ln gnu-getopt --force
 
-    # We already have git in the system, but this package brings to us git
-    # completion and gitk tool
-    sudo port install git
+    brew install ack dsh git httpie htop mutt pstree svn tmux tree vim macvim watch
 
     # OS notifications from scripts
-    sudo port install terminal-notifier
+    brew install terminal-notifier
 
-    # Meld requires a LOT of packages including GTK and DBus
-    #
-    # Alternative to meld: opendiff (command line tool which runs XCode's
-    # FileMerge)
-    if [ "$install_meld" -eq 1 ]; then
-        sudo port install rarian # Missing requirement for meld
-        sudo port install meld
-        launchctl load -w /Library/LaunchAgents/org.freedesktop.dbus-session.plist
-        sudo port install gnome-themes-standard
-        echo "include \"$prefix/share/themes/Adwaita/gtk-2.0/gtkrc\"" > ~/.gtkrc-2.0
-    fi
+    brew install python python3
+    pip install -U ipython jedi pyflakes pythonpy virtualenv virtualenvwrapper
+    pip3 install -U pyvsb $(github_package pydeposits) # $(git_package credit-calculator)
 
-    sudo port install py-ipython
-    for version in $port_pyversions; do
-        sudo port install python$version
-        sudo port install py$version-pip
-    done
-
-    sudo port select --set python python$port_default_pyver
-    sudo port select --set pip pip$port_default_pyver
-
-    sudo port install py$port_default_pyver-virtualenvwrapper
-    sudo port select --set virtualenv virtualenv$port_default_pyver
-
-    sudo pip-$default_pyver install jedi
-    sudo port install vim +python$port_default_pyver
-    sudo port install MacVim +python$port_default_pyver
-
-    sudo port install py$port_default_pyver-pyflakes
-    sudo port select --set pyflakes py$port_default_pyver-pyflakes
-
-    sudo pip-$default_pyver install pythonpy
-
-    sudo pip-$py3ver install pyvsb
-    sudo pip-$py3ver install $(github_package pydeposits)
-    #sudo pip-$py3ver install $(git_package credit-calculator)
-
-    if [ "$role" = "laptop.job" ]; then
-        sudo port install encfs mongodb
-    elif [ "$role" = "laptop.home" ]; then
-        sudo port install npm
-        sudo npm install --global less
-    fi
+    brew install encfs mongodb
 
     set +x; echo "Installation finished successfully."
 }
@@ -166,7 +160,6 @@ show_usage() {
     die "Usage: $0 {install|uninstall}"
 }
 
-
 if [ $# -ne 1 ]; then
     show_usage
 fi
@@ -175,30 +168,7 @@ if [ "$(whoami)" = root ]; then
     die "The script must be run from user."
 fi
 
-prefix=/opt/local
-role="$(< ~/.role)"
-
-# MacPorts default Python version
-default_pyver=2.7
-port_default_pyver="$(pyver_to_port_pyver "$default_pyver")"
-
-# Python 3 version
-py3ver=3.4
-
-pyversions="$default_pyver $py3ver"
-port_pyversions="$(pyver_to_port_pyver "$pyversions")"
-
-install_meld=0
-
-case $role in
-    "laptop.job")
-        ;;
-    "laptop.home")
-        ;;
-    *)
-        die 'Invalid ~/.role value.'
-        ;;
-esac
+prefix=/usr/local
 
 case $1 in
     "install") question_user "install all required packages" && install_packages ;;
