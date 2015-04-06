@@ -38,6 +38,18 @@ uninstall_pip_packages() {
     shopt -u nullglob
 }
 
+uninstall_brew_packages() {
+    if [ -e "$prefix/bin/brew" ]; then
+        echo "Uninstalling brew packages..."
+        brew list | xargs brew uninstall
+        brew tap | xargs brew untap
+    fi
+
+    # osxfuse package requires manual copying of
+    # /usr/local/opt/osxfuse/Library/Filesystems/osxfusefs.fs to /Library/Filesystems/osxfusefs.fs
+    rm -rf /Library/Filesystems/osxfusefs.fs
+}
+
 uninstall_brew_distro() {
     echo "Uninstalling Homebrew distributive files..."
 
@@ -92,13 +104,7 @@ uninstall_packages() {
     [ -d "$prefix" ] || die "Homebrew is not installed to $prefix."
 
     uninstall_pip_packages
-
-    if [ -e "$prefix/bin/brew" ]; then
-        echo "Uninstalling brew packages..."
-        brew list | xargs brew uninstall
-        brew tap | xargs brew untap
-    fi
-
+    uninstall_brew_packages
     uninstall_brew_distro
     cleanup_brew_files
 
