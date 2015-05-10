@@ -44,10 +44,6 @@ uninstall_brew_packages() {
         brew list | xargs brew uninstall
         brew tap | xargs brew untap
     fi
-
-    # osxfuse package requires manual copying of
-    # /usr/local/opt/osxfuse/Library/Filesystems/osxfusefs.fs to /Library/Filesystems/osxfusefs.fs
-    rm -rf /Library/Filesystems/osxfusefs.fs
 }
 
 uninstall_brew_distro() {
