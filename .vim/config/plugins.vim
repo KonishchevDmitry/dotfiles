@@ -82,3 +82,13 @@ let OmniCpp_ShowAccess = 1
 
 " pylint is default but it's too strict
 let g:syntastic_python_checkers = [ 'pyflakes' ]
+
+
+
+" vim-racer
+
+let racer_path = expand('<sfile>:p:h') . '/../bundle/racer'
+if isdirectory(racer_path)
+    let $RUST_SRC_PATH = racer_path . '/rust-src'
+    let g:racer_cmd = racer_path . '/target/release/racer'
+endif

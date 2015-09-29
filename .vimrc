@@ -82,6 +82,10 @@ set nowrapscan
 set hlsearch
 
 
+" Allow to switch buffer when there are unsaved changes in current buffer
+" (useful in plugins that for example jump you from the source to definition).
+set hidden
+
 " Disable swap file creating
 set noswapfile
 
