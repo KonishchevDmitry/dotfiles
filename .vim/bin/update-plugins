@@ -159,7 +159,9 @@ main() {
     sync_plugins "$plugins"
     update_plugin tpope/vim-pathogen ~/.vim/pathogen
 
-    configure_rust_plugins
+    if [ "$with_rust" -eq 1 ]; then
+        configure_rust_plugins
+    fi
 
     if [ "$(uname)" = Linux -a -n "${DISPLAY:-}" ]; then
         echo;echo "Compile xkb-switch..."
