@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# rsspipes installation/updating script
+#
+
+. ~/.gvm/scripts/gvm || exit 1
+set -eu
+
+go_version=go1.4.2
+package=github.com/KonishchevDmitry/my-rsspipes
+install_path=/opt/bin/rsspipes
+
+[ -d ~/.gvm/gos/$go_version ] || gvm install $go_version
+
+set +eu
+gvm use $go_version
+set -eux
+
+go get -v -u -t $package
+go install -v $package
+
+sudo install ~/.gvm/pkgsets/$go_version/global/bin/my-rsspipes $install_path
+sudo systemctl restart rsspipes
