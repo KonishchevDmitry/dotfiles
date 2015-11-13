@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# rsspipes installation/updating script
+# Installs/upgrades rsspipes
 #
 
 . ~/.gvm/scripts/gvm || exit 1
@@ -20,4 +20,5 @@ go get -v -u -t $package
 go install -v $package
 
 sudo install ~/.gvm/pkgsets/$go_version/global/bin/my-rsspipes $install_path
-sudo systemctl restart rsspipes
+sudo systemctl restart rsspipes; sleep 1
+systemctl status rsspipes
