@@ -38,6 +38,14 @@ uninstall_pip_packages() {
     shopt -u nullglob
 }
 
+uninstall_brew_packages() {
+    if [ -e "$prefix/bin/brew" ]; then
+        echo "Uninstalling brew packages..."
+        brew list | xargs brew uninstall
+        brew tap | xargs brew untap
+    fi
+}
+
 uninstall_brew_distro() {
     echo "Uninstalling Homebrew distributive files..."
 
@@ -92,13 +100,7 @@ uninstall_packages() {
     [ -d "$prefix" ] || die "Homebrew is not installed to $prefix."
 
     uninstall_pip_packages
-
-    if [ -e "$prefix/bin/brew" ]; then
-        echo "Uninstalling brew packages..."
-        brew list | xargs brew uninstall
-        brew tap | xargs brew untap
-    fi
-
+    uninstall_brew_packages
     uninstall_brew_distro
     cleanup_brew_files
 

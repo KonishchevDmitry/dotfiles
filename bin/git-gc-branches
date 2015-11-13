@@ -1,0 +1,17 @@
+#!/bin/sh
+#
+# Deletes all local merged and all stale remote-tracking branches
+#
+
+set -eu
+
+branches="$(git for-each-ref refs/heads/ --shell --format='branch=%(refname:short)')"
+while read line; do
+    eval "$line"
+    [ "$branch" = master ] || git branch -d "$branch" ||:
+done <<< "$branches"
+
+remotes="$(git remote)"
+for remote in $remotes; do
+    git remote prune origin
+done

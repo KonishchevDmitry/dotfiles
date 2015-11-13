@@ -82,11 +82,22 @@ set nowrapscan
 set hlsearch
 
 
-" Disable backing up before overwriting a file
-set nobackup
+" Allow to switch buffer when there are unsaved changes in current buffer
+" (useful in plugins that for example jump you from the source to definition).
+set hidden
 
 " Disable swap file creating
 set noswapfile
+
+" Disable backing up before overwriting a file
+set nobackup
+
+" When Vim is called from crontab -e it will not work if the 'backup' option
+" is set to no or auto ('crontab: temp file must be edited in place' error
+" message is returned). This setting fixes the issue.
+if has('macunix')
+    set backupskip+=/private/tmp/*
+endif
 
 
 " Assume that we always support at least 256 colors

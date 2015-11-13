@@ -83,8 +83,41 @@ sync_plugins() {
     done
 }
 
+configure_rust_plugins() {
+    echo "Configure Rust plugins..."
+
+    local racer_path="$plugin_dir/racer"
+    (cd "$racer_path" && cargo build --release)
+
+    local rust_version
+    rust_version="$(rustc --version)"
+    rust_version="${rust_version#rustc }"
+
+    local package_name="rustc-$rust_version"
+    local src_path="$racer_path/$package_name"
+    local src_archive_path="$src_path-src.tar.gz"
+
+    if [ ! -e "$src_path" ]; then
+        curl "http://static.rust-lang.org/dist/rustc-$rust_version-src.tar.gz" -o "$src_archive_path"
+        tar -xf "$src_archive_path" -C "$racer_path"
+    fi
+
+    rm -f "$src_archive_path"
+
+    local src_link_path="$racer_path/rust-src"
+    [ ! -e "$src_link_path" ] || unlink "$src_link_path"
+    ln -s "$package_name/src" "$src_link_path"
+}
+
 main() {
+    local with_rust=1
+
     echo "Syncing Vim plugins..."
+
+    if ! which -s rustc || ! which -s cargo; then
+        echo "Skipping Rust plugins installation: rustc/cargo is not installed."
+        with_rust=0
+    fi
 
     [ "$force_reinstall" -eq 0 ] || rm -rf ~/.vim/pathogen "$plugin_dir"
     [ -d "$plugin_dir" ] || mkdir "$plugin_dir"
@@ -115,8 +148,20 @@ main() {
         '
     fi
 
+    if [ "$with_rust" -eq 1 ]; then
+        plugins+='
+            rust-lang/rust.vim
+            phildawes/racer
+            racer-rust/vim-racer
+        '
+    fi
+
     sync_plugins "$plugins"
     update_plugin tpope/vim-pathogen ~/.vim/pathogen
+
+    if [ "$with_rust" -eq 1 ]; then
+        configure_rust_plugins
+    fi
 
     if [ "$(uname)" = Linux -a -n "${DISPLAY:-}" ]; then
         echo;echo "Compile xkb-switch..."
