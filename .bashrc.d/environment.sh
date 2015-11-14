@@ -22,3 +22,6 @@ if virtualenvwrapper=$(which virtualenvwrapper.sh); then
     . "$virtualenvwrapper"
 fi
 unset virtualenvwrapper
+
+# Set up gvm (Go Version Manager)
+[ -f ~/.gvm/scripts/gvm ] && . ~/.gvm/scripts/gvm
