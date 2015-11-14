@@ -35,5 +35,10 @@ fi
 server() {
     local host="server.lan"
     host -a -W 1 "$host" > /dev/null 2>&1 || host="konishchev.ru"
-    ssh "$host" -t tmux new-session -A -s admin
+
+    if [ "$1" == ssh ]; then
+        ssh "$host" -t -- tmux new-session -A -s admin
+    else
+        mosh "$host" -- tmux new-session -A -s admin
+    fi
 }
