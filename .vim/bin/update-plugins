@@ -135,12 +135,6 @@ main() {
         groenewege/vim-less
     '
 
-    if [ "$(uname)" = Darwin ]; then
-        plugins+='
-            cypok/KeyboardLayoutSwitcher
-        '
-    fi
-
     if [ "$(uname)" = Linux -a -n "${DISPLAY:-}" ]; then
         plugins+='
             lyokha/vim-xkbswitch
