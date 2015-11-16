@@ -1,8 +1,0 @@
-#!/bin/sh
-#
-# Sends the specified torrent files to torrent downloader
-#
-
-for torrent in "$@"; do
-    mv "$torrent" ~/Cloud/Torrents/$(uuidgen).torrent
-done
