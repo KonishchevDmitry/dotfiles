@@ -1,0 +1,69 @@
+#!/usr/bin/env python
+
+"""
+Reads requirements from python script in the following format:
+
+#!/usr/bin/env python
+#
+# Script description
+#
+# requirements.txt: req1 req2
+# req3 req4
+"""
+
+from __future__ import unicode_literals
+from __future__ import print_function
+
+import os
+import re
+import sys
+
+
+def read_requirements(script_file):
+    requirements = []
+    reading_requirements = False
+    requirements_prefix = "requirements.txt:"
+
+    for line in script_file:
+        if not line.startswith("#"):
+            break
+
+        line = line[1:].strip()
+
+        if reading_requirements:
+            if line:
+                requirements.extend(parse_requirements(line))
+            else:
+                break
+        elif line.startswith(requirements_prefix):
+            reading_requirements = True
+            line = line[len(requirements_prefix):].lstrip()
+            if line:
+                requirements.extend(parse_requirements(line))
+
+    return requirements
+
+
+def parse_requirements(string):
+    return re.split(r"\s+", string)
+
+
+def main():
+    if len(sys.argv) != 2:
+        sys.exit("Usage: {} PYTHON_SCRIPT".format(sys.argv[0]))
+
+    script_path = sys.argv[1]
+
+    try:
+        with open(script_path) as script_file:
+            requirements = read_requirements(script_file)
+    except EnvironmentError as e:
+        print("Error:", e, file=sys.stderr)
+        sys.exit(os.EX_SOFTWARE)
+
+    if requirements:
+        print(" ".join(requirements))
+
+
+if __name__ == "__main__":
+    main()
