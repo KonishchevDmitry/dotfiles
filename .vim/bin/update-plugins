@@ -91,7 +91,7 @@ configure_rust_plugins() {
 
     local rust_version
     rust_version="$(rustc --version)"
-    rust_version="${rust_version#rustc }"
+    rust_version="$(echo -n "$rust_version" | cut -f 2 -d ' ')"
 
     local package_name="rustc-$rust_version"
     local src_path="$racer_path/$package_name"
@@ -134,12 +134,6 @@ main() {
         Glench/Vim-Jinja2-Syntax
         groenewege/vim-less
     '
-
-    if [ "$(uname)" = Darwin ]; then
-        plugins+='
-            cypok/KeyboardLayoutSwitcher
-        '
-    fi
 
     if [ "$(uname)" = Linux -a -n "${DISPLAY:-}" ]; then
         plugins+='
