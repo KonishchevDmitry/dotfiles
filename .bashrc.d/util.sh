@@ -30,15 +30,3 @@ if [ "$(uname)" = Darwin ]; then
         return $rc
     }
 fi
-
-# ssh to tmux session on the home server
-server() {
-    local host="server.lan"
-    host -a -W 1 "$host" > /dev/null 2>&1 || host="konishchev.ru"
-
-    if [ "$1" == ssh ]; then
-        ssh "$host" -t -- tmux new-session -A -s admin
-    else
-        mosh "$host" -- tmux new-session -A -s admin
-    fi
-}
