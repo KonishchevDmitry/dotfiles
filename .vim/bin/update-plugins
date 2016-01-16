@@ -114,7 +114,7 @@ main() {
 
     echo "Syncing Vim plugins..."
 
-    if ! which -s rustc || ! which -s cargo; then
+    if ! which rustc > /dev/null 2>&1 || ! which cargo > /dev/null 2>&1; then
         echo "Skipping Rust plugins installation: rustc/cargo is not installed."
         with_rust=0
     fi
