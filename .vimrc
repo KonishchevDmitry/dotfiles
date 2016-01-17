@@ -28,7 +28,7 @@ set statusline=%<%f%h%m%r%=format=%{&fileformat}\ file=%{&fileencoding}\ enc=%{&
 set wildmode=longest,list
 
 " Show (partial) command in the last line of the screen.
-" For example if you type 2d, Vim will show "2d" in last line of the screen.
+" For example if you type 2d, Vim will show '2d' in last line of the screen.
 set showcmd
 
 
@@ -101,7 +101,7 @@ endif
 
 
 " Assume that we always support at least 256 colors
-if !has("gui_running") && &t_Co < 256
+if !has('gui_running') && &t_Co < 256
     set t_Co=256
 endif
 
@@ -116,6 +116,7 @@ source ~/.vim/config/binary-file-support.vim
 source ~/.vim/config/coding-style.vim
 source ~/.vim/config/cpp-header-switch.vim
 source ~/.vim/config/file-encoding.vim
+source ~/.vim/config/ftplugin-fix.vim
 source ~/.vim/config/highlight.vim
 source ~/.vim/config/hotkeys.vim
 source ~/.vim/config/keyboard-layout.vim
