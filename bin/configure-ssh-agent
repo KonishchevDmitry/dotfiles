@@ -1,0 +1,148 @@
+#!/usr/bin/env python3
+#
+# Runs ssh agent at the specified path if it's not running already and leaves only specified allowed keys in it assuming
+# that it always catches all available keys from keychain at startup.
+#
+# requirements.txt: psh psys
+
+import argparse
+import errno
+import os
+import socket
+import sys
+
+from psh import sh, ExecutionError
+from psys.daemon import acquire_pidfile, release_pidfile, PidFileLockError
+
+
+class Error(Exception):
+    def __init__(self, message, *args):
+        super(Error, self).__init__(message.format(*args) if args else message)
+
+
+def check_socket(socket_path, unlink=False):
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+        sock.settimeout(10)
+
+        try:
+            sock.connect(socket_path)
+        except EnvironmentError as e:
+            if e.errno in (errno.ENOENT, errno.ENOTDIR):
+                return False
+            elif e.errno == errno.ECONNREFUSED:
+                if unlink:
+                    try:
+                        os.unlink(socket_path)
+                    except EnvironmentError as e:
+                        if e.errno not in (errno.ENOENT, errno.ENOTDIR):
+                            raise Error("Failed to remove '{}': {}.", socket_path, e)
+
+                return False
+            else:
+                raise Error("Failed to connect to {}: {}.", socket_path, e)
+
+    return True
+
+
+def start_agent(socket_path, allowed_keys):
+    lock_path = socket_path + ".lock"
+    temp_socket_path = socket_path + ".tmp"
+
+    try:
+        lock_fd = acquire_pidfile(lock_path)
+    except PidFileLockError as e:
+        raise Error("Unable to lock the agent: {}", e)
+
+    try:
+        if check_socket(socket_path, unlink=True):
+            return
+
+        if not check_socket(temp_socket_path, unlink=True):
+            print("The agent is not started. Starting...")
+
+            try:
+                sh.ssh_agent("-a", temp_socket_path).execute()
+            except ExecutionError as e:
+                raise Error("Failed to start ssh-agent: {}.", e)
+
+        delete_forbidden_keys(temp_socket_path, allowed_keys)
+        os.rename(temp_socket_path, socket_path)
+    finally:
+        release_pidfile(lock_path, lock_fd)
+
+
+def delete_forbidden_keys(socket_path, allowed_keys):
+    forbidden_keys = check_keys(socket_path, allowed_keys)
+    if not forbidden_keys:
+        return
+
+    try:
+        sh.ssh_add("-d", *forbidden_keys, _env={"SSH_AUTH_SOCK": socket_path}).execute()
+    except ExecutionError as e:
+        raise Error("Failed to delete forbidden keys from the agent: {}.", e)
+
+    forbidden_keys = check_keys(socket_path, allowed_keys)
+    if forbidden_keys:
+        raise Error("Failed to delete forbidden keys from the agent: `ssh-add -d` hasn't deleted the specified keys.")
+
+
+def check_keys(socket_path, allowed_keys):
+    forbidden_keys = set()
+
+    try:
+        with sh.ssh_add("-l", _env={"SSH_AUTH_SOCK": socket_path}, _ok_statuses=(0, 1)) as process:
+            stdout_lines = list(process)
+
+        if process.status():
+            if stdout_lines == ["The agent has no identities.\n"]:
+                return forbidden_keys
+            else:
+                raise ExecutionError(str(process), process.status(), process.raw_stdout(), process.raw_stderr())
+
+        if not stdout_lines:
+            raise Error("The `ssh-add -l` produced an empty output.")
+
+        for line in stdout_lines:
+            key_info = line.split(" ")
+            if len(key_info) != 4:
+                raise Error("Got an unexpected output from `ssh-add -l` command: {!r}.", line)
+
+            key_path = key_info[2]
+            if key_path not in allowed_keys:
+                forbidden_keys.add(key_path)
+    except (Error, ExecutionError) as e:
+        raise Error("Failed to check the agent's keys: {}", e)
+
+    return forbidden_keys
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Configure ssh-agent")
+    parser.add_argument("-a", metavar="PATH", required=True, dest="socket_path", help="agent's UNIX-domain socket path")
+    parser.add_argument("file", nargs="+", help="path to private key that is allowed to use by the agent")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    socket_path = args.socket_path
+    allowed_keys = [os.path.abspath(path) for path in args.file]
+
+    try:
+        if not check_socket(socket_path):
+            start_agent(socket_path, allowed_keys)
+
+        # Just in case check: for example if in the future ssh-agent will automatically catch all new keys added to
+        # keychain by other agents.
+        forbidden_keys = check_keys(socket_path, allowed_keys)
+        if forbidden_keys:
+            raise Error("The agent is already configured and has the following forbidden keys: {}.",
+                        ", ".join(forbidden_keys))
+
+        print("The agent is configured as '{}'.".format(socket_path))
+    except Error as e:
+        sys.exit("Error: {}".format(e))
+
+
+if __name__ == "__main__":
+    main()
