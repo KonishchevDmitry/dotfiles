@@ -23,7 +23,7 @@ setlocal foldlevel=9999
 
 
 " Maximum width of text that is being inserted
-setlocal textwidth=78
+setlocal textwidth=120
 
 " Auto-wrap comments using textwidth
 setlocal formatoptions+=c
