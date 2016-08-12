@@ -1,0 +1,7 @@
+#!/bin/sh
+#
+# Clones git repository with job-specific settings
+#
+
+set -eu
+exec git clone --config user.email=konishchev@yandex-team.ru "$@"
