@@ -21,7 +21,7 @@ endif
 "au VimLeave * :mksession! .vim/ide.session
 
 
-python << EOF
+python3 << EOF
 """
 Adds all python modules in the current working directory to the path.
 

@@ -16,7 +16,7 @@ setlocal makeprg=python\ -c\ \"import\ py_compile,sys,tempfile;\ sys.stderr=sys.
 setlocal efm=%C\ %.%#,%A\ \ File\ \"%f\"\\,\ line\ %l%.%#,%Z%[%^\ ]%\\@=%m
 
 
-python << EOF
+python3 << EOF
 """
 Adds all python modules to the path.
 
@@ -33,7 +33,7 @@ for path in sys.path:
 EOF
 
 
-python << EOL
+python3 << EOL
 """
 Execute a selection of code.
 Use VISUAL to select a range and then hit F7 to execute it.
