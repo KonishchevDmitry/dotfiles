@@ -3,7 +3,7 @@
     excludesfile = ~/.gitignore.global
 [user]
     name = Dmitry Konishchev
-    email = konishchev@gmail.com
+    useConfigOnly = true
 [color]
     diff = auto
     status = auto
