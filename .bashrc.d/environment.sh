@@ -27,7 +27,7 @@ fi
 unset virtualenvwrapper
 
 # Set up Go workspace
-export GOPATH=~/programs/go
+export GOPATH=~/src/go
 PATH="$PATH:$GOPATH/bin"
 
 # Set up gvm (Go Version Manager)
