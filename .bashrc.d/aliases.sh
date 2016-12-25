@@ -8,7 +8,8 @@ alias v='vim'
 alias ag='ag --color-path 32 --color-line-number "1;38" --color-match "48;5;229"'
 
 # git for dotfiles
-dotfiles-git() { git --git-dir ~/.git-dir --work-tree ~ "$@"; }
+dotfiles-git() { git --git-dir ~/.git-dotfiles --work-tree ~ "$@"; }
+private-dotfiles-git() { git --git-dir ~/.git-private-dotfiles --work-tree ~ "$@"; }
 
 # ssh to tmux session
 # If called as `ssh-tmux -A` ssh agent will be properly forwarded into tmux session.

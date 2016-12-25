@@ -7,13 +7,14 @@ set -eu
 
 show_help() {
     cat <<EOF
-usage: $1 [-h] [-f]
+usage: $1 [-h] [-f] [-p ROLE]
 
 Configures user dotfiles.
 
 optional arguments:
-  -h, --help    show this help message and exit
-  -f, --force   force reinstall from scratch
+  -h, --help                show this help message and exit
+  -f, --force               force reinstall from scratch
+  -p, --with-private ROLE   configure the specified private dotfiles
 EOF
 }
 
@@ -24,6 +25,10 @@ parse_args() {
         case "$1" in
             -h|--help) show_help "$0"; exit 0;;
             -f|--force) force_reinstall=1;;
+            -p|--with-private)
+                with_private_dotfiles="$2"
+                [ -n "$with_private_dotfiles" ] || die "Invalid role."
+                shift;;
             --) shift; break;;
             (-*) die "Unrecognized option: $1.";;
             (*) break;;
@@ -34,8 +39,12 @@ parse_args() {
     [ $# -eq 0 ] || die "Invalid parameter: $1."
 }
 
-die() {
+error() {
     echo "Error:" "$@" >&2
+}
+
+die() {
+    error "$@"
     exit 1
 }
 
@@ -55,31 +64,63 @@ EOF
 
 clone_repository() {
     local url="$1"
+    local clone_dir="$2"
+    local git_dir="$3"
+
     rm -rf "$clone_dir" && create_git_ssh_command && \
         GIT_SSH="$git_ssh" git clone --no-checkout "$url" "$clone_dir" && \
         mv "$clone_dir/.git" "$git_dir" && rmdir "$clone_dir"
 }
 
 dotfiles_git() {
+    local git_dir="$1"; shift
     (cd ~ && git --git-dir "$git_dir" "$@")
+}
+
+public_dotfiles_git() {
+    dotfiles_git "$public_git_dir" "$@"
+}
+
+private_dotfiles_git() {
+    dotfiles_git "$private_git_dir" "$@"
 }
 
 main() {
     local force_params=""
 
-    if [ "$force_reinstall" -ne 0 ]; then
-        force_params="-f"
-        rm -rf "$git_dir"
+    if [ -d "$old_public_git_dir" ]; then
+        if [ -d "$public_git_dir" ]; then
+            error "An abandoned $old_public_git_dir is detected."
+        else
+            echo "Upgrading $old_public_git_dir to $public_git_dir..."
+            mv "$old_public_git_dir" "$public_git_dir"
+        fi
     fi
 
-    if [ -d "$git_dir" ]; then
-        dotfiles_git pull
-    else
-        clone_repository git@github.com:KonishchevDmitry/dotfiles.git || \
-            clone_repository https://github.com/KonishchevDmitry/dotfiles.git
+    if [ "$force_reinstall" -ne 0 ]; then
+        force_params="-f"
+        rm -rf "$public_git_dir"
+        [ -z "$with_private_dotfiles" ] || rm -rf "$private_git_dir"
+    fi
 
-        dotfiles_git gc --aggressive
-        dotfiles_git reset --hard
+    if [ -d "$public_git_dir" ]; then
+        public_dotfiles_git pull
+    else
+        clone_repository git@github.com:KonishchevDmitry/dotfiles.git "$public_clone_dir" "$public_git_dir" || \
+            clone_repository https://github.com/KonishchevDmitry/dotfiles.git "$public_clone_dir" "$public_git_dir"
+
+        public_dotfiles_git gc --aggressive
+        public_dotfiles_git reset --hard
+    fi
+
+    if [ -n "$with_private_dotfiles" ]; then
+        if [ -d "$private_git_dir" ]; then
+            private_dotfiles_git pull
+        else
+            clone_repository "git@konishchev.ru:$with_private_dotfiles-private-dotfiles.git" "$private_clone_dir" "$private_git_dir"
+            private_dotfiles_git gc --aggressive
+            private_dotfiles_git reset --hard
+        fi
     fi
 
     ~/.vim/bin/update-plugins $force_params
@@ -87,13 +128,19 @@ main() {
 }
 
 force_reinstall=0
-git_dir=~/.git-dir
-clone_dir=~/.dotfiles
+with_private_dotfiles=""
+
+public_git_dir=~/.git-dotfiles
+old_public_git_dir=~/.git-dir
+public_clone_dir=~/.dotfiles
+
+private_git_dir=~/.git-private-dotfiles
+private_clone_dir=~/.private-dotfiles
 
 if [ "$(uname)" = Darwin -a "$(which getopt)" = /usr/bin/getopt ]; then
-    options="$(getopt hf "$@")"
+    options="$(getopt hfp: "$@")"
 else
-    options="$(getopt -n "$0" -o hf -l help,force -- "$@")"
+    options="$(getopt -n "$0" -o hfp: -l help,force,with-private: -- "$@")"
 fi
 
 parse_args "$options"

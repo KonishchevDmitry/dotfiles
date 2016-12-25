@@ -1,11 +1,9 @@
-/.bashrc.d/job.sh
-/.dsh/group/
-/.git-dir/
+/.git-dotfiles/
+/.git-private-dotfiles/
 /.vim/bundle/
 /.vim/pathogen/
 /.vim/spell/
 /.vim/view/
-/bin/mkdevelvirtualenv
 
 # Filter out all other files for easier observing of `git status`
 /.CFUserTextEncoding
