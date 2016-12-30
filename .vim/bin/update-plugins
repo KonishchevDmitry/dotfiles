@@ -51,12 +51,11 @@ update_plugin() {
         (cd "$path" && git pull)
     else
         echo "Installing $name..."
-        git clone "https://github.com/$full_name.git" "$path"
-        (cd "$path" && git gc --aggressive)
+        git clone --depth 1 "https://github.com/$full_name.git" "$path"
     fi
 
     if [ -e "$path/.gitmodules" ]; then
-        (cd "$path" && git submodule update --init)
+        (cd "$path" && git submodule update --init --depth 1)
     fi
 }
 
