@@ -1,7 +1,7 @@
 # Configure shell history
 
 # The number of commands to remember in the command history
-HISTSIZE=1000
+HISTSIZE=10000
 
 # The maximum number of lines contained in the history file
 HISTFILESIZE=10000
