@@ -7,12 +7,25 @@
 # for ssh logins, install and configure the libpam-umask package.
 #umask 022
 
+# Xorg has a bug: /etc/X11/xinit/xinitrc-common includes $HOME/.profile in addition to the one which may be sourced by
+# the shell. So this file should be written to support to be sourced twice.
+
+register_user_bin_path() {
+    local path="$1"
+
+    PATH="${PATH#$path:}"
+    PATH="${PATH//:${path//\//\\\/}:/:}"
+    PATH="${PATH%:$path}"
+
+    [ -d "$path" ] && PATH="$path:$PATH"
+}
+
 # Homebrew for OS X
-[ "$(uname)" = Darwin -a -d /usr/local/bin ] && PATH="/usr/local/bin:${PATH//\/usr\/local\/bin:/}"
+[ "$(uname)" = Darwin ] && register_user_bin_path /usr/local/bin
 
-# If running bash include .bashrc if it exists
-[ -n "$BASH_VERSION" -a -f "$HOME/.bashrc" ] && . "$HOME/.bashrc"
+# Private bins
+register_user_bin_path "$HOME/.local/bin"
+register_user_bin_path "$HOME/bin"
+register_user_bin_path "$HOME/sbin"
 
-# Set PATH so it includes user's private bin if it exists
-[ -d "$HOME/bin" ] && PATH="$HOME/bin:$PATH"
-[ -d "$HOME/sbin" ] && PATH="$HOME/sbin:$PATH"
+unset register_user_bin_path
