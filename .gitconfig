@@ -21,6 +21,7 @@
     pt = push --tags
     rb = rebase --committer-date-is-author-date
     st = status
+    stt = status --untracked=no
     su = submodule update --init --recursive
 [push]
     default = current
