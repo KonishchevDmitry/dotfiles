@@ -20,7 +20,7 @@ elif [ -f /etc/debian_version ]; then
 fi
 
 # Set up virtualenvwrapper
-if virtualenvwrapper=$(which virtualenvwrapper.sh); then
+if virtualenvwrapper=$(which virtualenvwrapper.sh 2>&1); then
     export PROJECT_HOME=~/programs
     . "$virtualenvwrapper"
 fi
