@@ -5,10 +5,12 @@ alias l='ls -lhaF'
 alias g='gvim'
 alias v='vim'
 
-alias ag='ag --color-path 32 --color-line-number "1;38" --color-match "48;5;229"'
+__is_light_background &&
+    alias ag='ag --color-path 32 --color-line-number "1;38" --color-match "48;5;229"'
 
 # git for dotfiles
 dotfiles-git() { git --git-dir ~/.git-dotfiles --work-tree ~ "$@"; }
+os-dotfiles-git() { git --git-dir ~/.git-os-dotfiles --work-tree ~ "$@"; }
 private-dotfiles-git() { git --git-dir ~/.git-private-dotfiles --work-tree ~ "$@"; }
 
 # ssh to tmux session
