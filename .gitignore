@@ -1,6 +1,7 @@
 /.bashrc.d/job.sh
 /.dsh/group/
 /.git-dotfiles/
+/.git-os-dotfiles/
 /.git-private-dotfiles/
 /.vim/bundle/
 /.vim/pathogen/
@@ -100,5 +101,6 @@
 /.virtualenvs/
 /.wall-e/
 /.Xauthority
+/.Xmodmap
 /.yandex/
 /Yandex/
