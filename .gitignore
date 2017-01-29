@@ -10,6 +10,7 @@
 /.vim/.netrwhist
 /.vim/libxkbswitch.so
 /bin/mkdevelvirtualenv
+/sbin/
 
 # Filter out all other files for easier observing of `git status`
 /.account
@@ -80,7 +81,6 @@
 /.recently-used
 /.rnd
 /.role
-/sbin/
 /.selected_editor
 /Server/
 /site.yaml.retry
