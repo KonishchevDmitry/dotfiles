@@ -55,7 +55,7 @@ update_plugin() {
     fi
 
     if [ -e "$path/.gitmodules" ]; then
-        (cd "$path" && git submodule update --init --depth 1)
+        (cd "$path" && git submodule update --init)
     fi
 }
 
