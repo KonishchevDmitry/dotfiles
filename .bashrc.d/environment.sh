@@ -20,8 +20,9 @@ elif [ -f /etc/debian_version ]; then
 fi
 
 # Set up virtualenvwrapper
-if virtualenvwrapper=$(which virtualenvwrapper.sh); then
-    export PROJECT_HOME=~/programs
+export PROJECT_HOME=~/src
+export VIRTUALENVWRAPPER_PYTHON=$(which python3 2>/dev/null || which python2)
+if ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper.sh 2>/dev/null); then
     . "$virtualenvwrapper"
 fi
 unset virtualenvwrapper
@@ -32,3 +33,6 @@ PATH="$PATH:$GOPATH/bin"
 
 # Set up gvm (Go Version Manager)
 [ -f ~/.gvm/scripts/gvm ] && . ~/.gvm/scripts/gvm
+
+# On Linux it's libvirt by default
+export VAGRANT_DEFAULT_PROVIDER=virtualbox
