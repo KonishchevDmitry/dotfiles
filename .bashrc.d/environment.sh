@@ -21,8 +21,7 @@ fi
 
 # Set up virtualenvwrapper
 export PROJECT_HOME=~/src
-export VIRTUALENVWRAPPER_PYTHON=$(which python3 2>/dev/null || which python2)
-if ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper.sh 2>/dev/null); then
+if ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper_lazy.sh 2>/dev/null); then
     . "$virtualenvwrapper"
 fi
 unset virtualenvwrapper
