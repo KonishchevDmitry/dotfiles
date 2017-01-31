@@ -1,6 +1,6 @@
 # Enable programmable completion features
 # Note: in OS X bash completion don't work in stock /bin/bash
-if ! shopt -oq posix; then
+if ! shopt -oq posix && [ -z "$BASH_COMPLETION_COMPAT_DIR" ]; then
     [ "$(uname)" = Darwin ] && prefix=/usr/local || prefix=""
 
     if [ -f "$prefix/usr/share/bash-completion/bash_completion" ]; then
