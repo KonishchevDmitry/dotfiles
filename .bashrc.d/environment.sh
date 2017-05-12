@@ -28,10 +28,8 @@ unset virtualenvwrapper
 
 # Set up Go workspace
 export GOPATH=~/src/go
-PATH="$PATH:$GOPATH/bin"
-
-# Set up gvm (Go Version Manager)
-[ -f ~/.gvm/scripts/gvm ] && . ~/.gvm/scripts/gvm
+[ -d /usr/local/go ] && PATH="/usr/local/go/bin:$PATH"
+[ -d "$GOPATH" ] && PATH="$GOPATH/bin:$PATH"
 
 # On Linux it's libvirt by default
 export VAGRANT_DEFAULT_PROVIDER=virtualbox
