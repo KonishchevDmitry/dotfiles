@@ -62,6 +62,7 @@
 /.mono/
 /Movies/
 /.mozilla/
+/.multirust
 /Music/
 /.node-gyp/
 /.npm/
@@ -80,6 +81,8 @@
 /.recently-used
 /.rnd
 /.role
+/.rsspipes.sqlite
+/.rustup/
 /.selected_editor
 /Server/
 /site.yaml.retry
@@ -99,6 +102,7 @@
 /VirtualBox VMs/
 /.virtualenvs/
 /.wall-e/
+/.wget-hsts
 /.Xauthority
 /.Xmodmap
 /.yandex/
