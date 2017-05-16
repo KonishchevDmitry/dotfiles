@@ -26,6 +26,9 @@ if ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwra
 fi
 unset virtualenvwrapper
 
+# Set up Rust environment
+[ -d ~/.cargo/bin ] && export PATH=~/.cargo/bin":$PATH"
+
 # Set up Go workspace
 export GOPATH=~/src/go
 [ -d /usr/local/go ] && PATH="/usr/local/go/bin:$PATH"
