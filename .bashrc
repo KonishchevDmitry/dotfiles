@@ -38,13 +38,3 @@ if [ -d ~/.bashrc.d ]; then
     $nullglob
     unset enable_profiling date nullglob file start_time end_time duration
 fi
-
-# Finalize command line prompt
-PS1+='\$ '
-
-PS1="\[\033[01m\]$PS1\[\033[00m\]"
-PS2="\[\033[01m\]$PS2\[\033[00m\]"
-if [ "$UID" -eq 0 ]; then
-    PS1="\[\033[31m\]$PS1"
-    PS2="\[\033[31m\]$PS2"
-fi

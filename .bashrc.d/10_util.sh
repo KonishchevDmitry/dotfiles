@@ -15,18 +15,3 @@ if [ -x /usr/bin/dircolors ]; then
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
 fi
-
-if [ "$(uname)" = Darwin ]; then
-    # OS X notifications from terminal
-    #
-    # Usage:
-    # $ shell_command; notify
-    notify () {
-        local rc=$?
-        local status
-        [ "$rc" -eq 0 ] && status='Success:' || status='Failure:'
-        local message="$(history | sed -nE '$ s/^[[:space:]]*[0-9]+[[:space:]]*(.*)[[:space:]]*;[[:space:]]*notify[[:space:]]*$/\1/ p')"
-        terminal-notifier -message "$status $message"
-        return $rc
-    }
-fi
