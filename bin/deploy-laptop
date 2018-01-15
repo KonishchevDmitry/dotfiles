@@ -212,7 +212,7 @@ install_brew_packages() {
     ln -s sed "$prefix/bin/gsed" # For compatibility with scripts that rely on prefixed version
 
     # FIXME: htop is not supported on High Sierra yet
-    brew install dsh git gnupg httpie mosh mutt pdsh pstree rsync svn the_silver_searcher tmux tree watch
+    brew install dsh git glances gnupg httpie mosh mutt pdsh pstree rsync svn the_silver_searcher tmux tree watch
     brew install vim --with-python3 --with-gettext
 
     # Configure ssh-askpass
