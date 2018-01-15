@@ -21,8 +21,12 @@ register_user_bin_path() {
     [ -d "$path" ] && PATH="$path:$PATH"
 }
 
-# Homebrew for OS X
-[ "$(uname)" = Darwin ] && register_user_bin_path /usr/local/bin
+# Use GNU coreutils instead of shipped with macOS
+if [ "$(uname)" = Darwin ]; then
+    [ -n "$MANPATH" ] || export MANPATH=/usr/local/share/man:/usr/share/man
+    PATH="/usr/local/opt/coreutils/libexec/gnubin:$PATH"
+    MANPATH="/usr/local/opt/coreutils/libexec/gnuman:$MANPATH"
+fi
 
 # Private bins
 register_user_bin_path "$HOME/.local/bin"

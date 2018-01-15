@@ -80,6 +80,8 @@ uninstall_pip_packages() {
 }
 
 uninstall_brew_packages() {
+    local symlink
+
     if [ -e "$prefix/bin/brew" ]; then
         echo "Uninstalling brew packages..."
         # Execute list commands twice since the first execution may trigger formulae update which produces additional output
@@ -88,9 +90,13 @@ uninstall_brew_packages() {
         brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs brew untap
     fi
 
-    if [ -h "$prefix/bin/python" ]; then
-        unlink "$prefix/bin/python"
-    fi
+    for symlink in gfind gsed python; do
+        symlink="$prefix/bin/$symlink"
+
+        if [ -h "$symlink" ]; then
+            unlink "$symlink"
+        fi
+    done
 }
 
 uninstall_brew_distro() {
@@ -193,10 +199,20 @@ install_brew_packages() {
     brew install bash bash-completion
     brew install homebrew/completions/pip-completion homebrew/completions/vagrant-completion
 
-    brew install gnu-getopt gnu-sed coreutils findutils homebrew/dupes/grep
+    brew install gnu-getopt
     brew ln gnu-getopt --force
 
-    brew install dsh git httpie gnupg htop mosh mutt pdsh pstree rsync svn the_silver_searcher tmux tree watch
+    brew install coreutils diffutils gpatch less
+    brew install gawk grep make --with-default-names
+
+    brew install findutils --with-default-names
+    ln -s find "$prefix/bin/gfind" # For compatibility with scripts that rely on prefixed version
+
+    brew install gnu-sed --with-default-names
+    ln -s sed "$prefix/bin/gsed" # For compatibility with scripts that rely on prefixed version
+
+    # FIXME: htop is not supported on High Sierra yet
+    brew install dsh git gnupg httpie mosh mutt pdsh pstree rsync svn the_silver_searcher tmux tree watch
     brew install vim --with-python3 --with-gettext
 
     # Configure ssh-askpass
