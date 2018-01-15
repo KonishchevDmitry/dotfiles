@@ -120,7 +120,7 @@ cleanup_brew_files() {
         rm -rf lib/python+([[:digit:]]).+([[:digit:]])
 
         for dir in bin lib share Library Cellar; do
-            [ ! -d "$dir" ] || find "$dir" -type d -empty -delete
+            [ ! -d "$dir" ] || find "$dir" -type d -empty -mindepth 1 -delete
         done
     )
 }
