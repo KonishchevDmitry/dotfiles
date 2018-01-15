@@ -12,9 +12,10 @@
 
 register_user_bin_path() {
     local path="$1"
+    local escaped_slash_path="${path//\//\\\/}"
 
+    PATH="${PATH//:$escaped_slash_path:/:}"
     PATH="${PATH#$path:}"
-    PATH="${PATH//:${path//\//\\\/}:/:}"
     PATH="${PATH%:$path}"
 
     [ -d "$path" ] && PATH="$path:$PATH"
