@@ -4,7 +4,7 @@
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # Enable color support of ls and also add handy aliases
-if which -s dircolors; then
+if which dircolors > /dev/null; then
     [ -r ~/.dircolors ] && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 
     alias ls='ls --color=auto'
