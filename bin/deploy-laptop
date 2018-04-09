@@ -197,7 +197,7 @@ install_brew_packages() {
     #
     # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal emulator
     brew install bash bash-completion
-    brew install homebrew/completions/pip-completion homebrew/completions/vagrant-completion
+    brew install cargo-completion pip-completion vagrant-completion
 
     brew install gnu-getopt
     brew ln gnu-getopt --force
@@ -206,13 +206,12 @@ install_brew_packages() {
     brew install gawk grep make --with-default-names
 
     brew install findutils --with-default-names
-    ln -s find "$prefix/bin/gfind" # For compatibility with scripts that rely on prefixed version
+    [ -h "$prefix/bin/gfind" ] || ln -s find "$prefix/bin/gfind" # For compatibility with scripts that rely on prefixed version
 
     brew install gnu-sed --with-default-names
-    ln -s sed "$prefix/bin/gsed" # For compatibility with scripts that rely on prefixed version
+    [ -h "$prefix/bin/gsed" ] || ln -s sed "$prefix/bin/gsed" # For compatibility with scripts that rely on prefixed version
 
-    # FIXME: htop is not supported on High Sierra yet
-    brew install dsh git glances gnupg httpie mosh mutt pdsh pstree rsync svn the_silver_searcher tmux tree watch
+    brew install dsh git glances gnupg htop httpie mosh mutt pdsh pstree rsync svn the_silver_searcher telnet tmux tree watch
     brew install vim --with-python3 --with-gettext
 
     # Configure ssh-askpass
@@ -233,7 +232,7 @@ install_brew_packages() {
     # OS notifications from scripts
     brew install terminal-notifier
 
-    brew install go python python3
+    brew install go python2 python3
     if [ ! -e "$prefix/bin/python" ]; then
         ln -s python2 "$prefix/bin/python"
     fi
@@ -246,6 +245,13 @@ install_brew_packages() {
     # Development libraries
     brew install libxml2 openssl
     brew link --force openssl
+
+    if curl https://github.yandex-team.ru/ --connect-timeout 1>/dev/null 2>&1; then
+        brew tap devtools/tap https://github.yandex-team.ru/devtools/tap.git
+        brew install executer
+    else
+        echo "Skip Intranet tools installation - we aren't connected to the Intranet."
+    fi
 
     # Cleanup old package versions
     brew cleanup
