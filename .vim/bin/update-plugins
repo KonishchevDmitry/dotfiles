@@ -109,7 +109,7 @@ configure_rust_plugins() {
 }
 
 main() {
-    local with_rust=1
+    local with_rust=0
 
     echo "Syncing Vim plugins..."
 
