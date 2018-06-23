@@ -84,9 +84,14 @@ uninstall_brew_packages() {
 
     if [ -e "$prefix/bin/brew" ]; then
         echo "Uninstalling brew packages..."
+
         # Execute list commands twice since the first execution may trigger formulae update which produces additional output
         brew list > /dev/null && brew list | xargs brew uninstall --force
+        hash -r # Clear bash command path cache
+
         brew cask list > /dev/null && brew cask list | xargs brew cask uninstall
+        hash -r # Clear bash command path cache
+
         brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs brew untap
     fi
 
