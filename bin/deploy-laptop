@@ -216,7 +216,7 @@ install_brew_packages() {
     brew install gnu-sed --with-default-names
     [ -h "$prefix/bin/gsed" ] || ln -s sed "$prefix/bin/gsed" # For compatibility with scripts that rely on prefixed version
 
-    brew install dsh git glances gnupg htop httpie mosh mutt pdsh pstree rsync svn the_silver_searcher telnet tmux tree watch
+    brew install dsh git glances gnupg htop httpie mosh mutt ncdu pdsh pstree rsync svn the_silver_searcher telnet tmux tree watch
     brew install vim --with-python3 --with-gettext
 
     # Configure ssh-askpass
@@ -281,7 +281,7 @@ install_pip_packages() {
     pip3 $install -U ipython virtualenv virtualenvwrapper
 
     shopt -s nullglob
-        for script in ~/bin/* ~/sbin/*; do
+        for script in ~/bin/* ~/sbin/* ~/src/investment-tools/*; do
             script_type="$(file --mime-type --brief "$script")"
             [ "$script_type" = 'text/x-python' ] || continue
 
