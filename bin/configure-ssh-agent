@@ -11,8 +11,21 @@ import os
 import socket
 import sys
 
+from enum import Enum
+
 from psh import sh, ExecutionError
 from psys.daemon import acquire_pidfile, release_pidfile, PidFileLockError
+
+
+class Mode(Enum):
+    """
+    Generally remove mode is preferred because it allows to automatically load keys with their passwords from keychain,
+    but due to https://bugs.launchpad.net/ubuntu/+source/openssh/+bug/58162 sometimes add mode may be the only way on
+    MacOS with Vagrant.
+    """
+
+    ADD = "add"
+    REMOVE = "remove"
 
 
 class Error(Exception):
@@ -44,7 +57,7 @@ def check_socket(socket_path, unlink=False):
     return True
 
 
-def start_agent(socket_path, allowed_keys):
+def start_agent(socket_path, allowed_keys, mode: Mode):
     lock_path = socket_path + ".lock"
     temp_socket_path = socket_path + ".tmp"
 
@@ -65,7 +78,20 @@ def start_agent(socket_path, allowed_keys):
             except ExecutionError as e:
                 raise Error("Failed to start ssh-agent: {}.", e)
 
-        delete_forbidden_keys(temp_socket_path, allowed_keys)
+        if mode == Mode.ADD:
+            for allowed_key in allowed_keys:
+                try:
+                    sh.ssh_add(allowed_key, _env={"SSH_AUTH_SOCK": temp_socket_path}).execute()
+                except ExecutionError as e:
+                    raise Error("Failed to add {!r} SSH key to the agent: {}.", allowed_key, e)
+        else:
+            try:
+                sh.ssh_add("-A", _env={"SSH_AUTH_SOCK": temp_socket_path}).execute()
+            except ExecutionError as e:
+                raise Error("Failed to add SSH keys from keychain: {}.", e)
+
+            delete_forbidden_keys(temp_socket_path, allowed_keys)
+
         os.rename(temp_socket_path, socket_path)
     finally:
         release_pidfile(lock_path, lock_fd)
@@ -119,6 +145,8 @@ def check_keys(socket_path, allowed_keys):
 def parse_args():
     parser = argparse.ArgumentParser(description="Configure ssh-agent")
     parser.add_argument("-a", metavar="PATH", required=True, dest="socket_path", help="agent's UNIX-domain socket path")
+    parser.add_argument("-m", choices=[mode.value for mode in Mode], default=Mode.REMOVE.value, dest="mode",
+                        help="keys filtering mode (default is removing forbidden keys)")
     parser.add_argument("file", nargs="+", help="path to private key that is allowed to use by the agent")
     return parser.parse_args()
 
@@ -130,7 +158,7 @@ def main():
 
     try:
         if not check_socket(socket_path):
-            start_agent(socket_path, allowed_keys)
+            start_agent(socket_path, allowed_keys, Mode(args.mode))
 
         # Just in case check: for example if in the future ssh-agent will automatically catch all new keys added to
         # keychain by other agents.
