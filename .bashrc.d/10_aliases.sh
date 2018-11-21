@@ -17,7 +17,7 @@ private-dotfiles-git() { git --git-dir ~/.git-private-dotfiles --work-tree ~ "$@
 # If called as `ssh-tmux -A` ssh agent will be properly forwarded into tmux session.
 # If called as `ssh-tmux` it's expected that agent is available on remote host at ~/.ssh/tmux-agent.socket.
 ssh-tmux() {
-    ssh "$@" -t -- '
+    ssh -t "$@" '
         agent_socket=~/.ssh/tmux-agent.socket
 
         if [ -n "$SSH_AUTH_SOCK" -a -e "$SSH_AUTH_SOCK" -a ! "$agent_socket" -ef "$SSH_AUTH_SOCK" ]; then
