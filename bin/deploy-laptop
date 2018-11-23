@@ -95,7 +95,7 @@ uninstall_brew_packages() {
         brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs brew untap
     fi
 
-    for symlink in gfind gsed python; do
+    for symlink in getopt gfind gsed python; do
         symlink="$prefix/bin/$symlink"
 
         if [ -h "$symlink" ]; then
@@ -205,7 +205,7 @@ install_brew_packages() {
     brew install cargo-completion pip-completion vagrant-completion
 
     brew install gnu-getopt
-    brew ln gnu-getopt --force
+    [ -h "$prefix/bin/getopt" ] || ln -s "$prefix/opt/gnu-getopt/bin/getopt" "$prefix/bin/getopt" # `brew ln gnu-getopt --force` refuses to create the link
 
     brew install coreutils diffutils gpatch less
     brew install gawk grep make --with-default-names
