@@ -199,6 +199,7 @@ update_brew() {
 
     if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
         brew untap devtools/tap ||:
+        brew untap yandex/arc ||:
     else
         echo "Skip Intranet tools installation - we aren't connected to the Intranet."
     fi
@@ -265,6 +266,9 @@ install_brew_packages() {
     if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
         brew tap devtools/tap https://github.yandex-team.ru/devtools/tap.git
         brew install executer
+
+        brew tap --full yandex/arc https://arc-vcs.yandex-team.ru/homebrew-tap
+        brew install arc-launcher
     else
         echo "Skip Intranet tools installation - we aren't connected to the Intranet."
     fi
@@ -318,7 +322,7 @@ install_pip_packages() {
         done
     shopt -u nullglob
 
-    pip3 $install -U $(github_package pydeposits)
+    #pip3 $install -U $(github_package pydeposits)
 }
 
 install_packages() {
