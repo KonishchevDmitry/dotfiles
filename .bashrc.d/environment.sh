@@ -30,7 +30,7 @@ unset virtualenvwrapper
 [ -d ~/.cargo/bin ] && export PATH=~/.cargo/bin":$PATH"
 
 # Set up Go workspace
-export GOPATH=~/src/go
+export GOPATH=~/go
 [ -d /usr/local/go ] && PATH="/usr/local/go/bin:$PATH"
 [ -d "$GOPATH" ] && PATH="$GOPATH/bin:$PATH"
 
