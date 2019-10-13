@@ -3,9 +3,6 @@
 # Setting up text editor
 export EDITOR="$(which vim)"
 
-# Python: don't write .py[co] files on import
-export PYTHONDONTWRITEBYTECODE=yes
-
 if [ "$(uname)" = Darwin ]; then
     # To eliminate problems with locale over ssh
     export LANG=en_US.UTF-8
@@ -19,9 +16,17 @@ elif [ -f /etc/debian_version ]; then
     export DEBFULLNAME='Dmitry Konishchev'
 fi
 
+# Python: don't write .py[co] files on import
+export PYTHONDONTWRITEBYTECODE=yes
+
 # Set up virtualenvwrapper
 export PROJECT_HOME=~/src
-if ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper_lazy.sh 2>/dev/null); then
+
+# Set up Python environment
+if which pyenv >/dev/null; then
+    eval "$(pyenv init -)"
+    pyenv virtualenvwrapper_lazy
+elif ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper_lazy.sh 2>/dev/null); then
     . "$virtualenvwrapper"
 fi
 unset virtualenvwrapper

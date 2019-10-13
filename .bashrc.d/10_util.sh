@@ -4,7 +4,7 @@
 [ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
 
 # Enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
+if which dircolors > /dev/null; then
     [ -r ~/.dircolors ] && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
 
     alias ls='ls --color=auto'
@@ -14,19 +14,4 @@ if [ -x /usr/bin/dircolors ]; then
     alias grep='grep --color=auto'
     alias fgrep='fgrep --color=auto'
     alias egrep='egrep --color=auto'
-fi
-
-if [ "$(uname)" = Darwin ]; then
-    # OS X notifications from terminal
-    #
-    # Usage:
-    # $ shell_command; notify
-    notify () {
-        local rc=$?
-        local status
-        [ "$rc" -eq 0 ] && status='Success:' || status='Failure:'
-        local message="$(history | sed -nE '$ s/^[[:space:]]*[0-9]+[[:space:]]*(.*)[[:space:]]*;[[:space:]]*notify[[:space:]]*$/\1/ p')"
-        terminal-notifier -message "$status $message"
-        return $rc
-    }
 fi

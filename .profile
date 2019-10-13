@@ -12,16 +12,17 @@
 
 register_user_bin_path() {
     local path="$1"
+    local escaped_slash_path="${path//\//\\\/}"
 
+    PATH="${PATH//:$escaped_slash_path:/:}"
     PATH="${PATH#$path:}"
-    PATH="${PATH//:${path//\//\\\/}:/:}"
     PATH="${PATH%:$path}"
 
     [ -d "$path" ] && PATH="$path:$PATH"
 }
 
-# Homebrew for OS X
-[ "$(uname)" = Darwin ] && register_user_bin_path /usr/local/bin
+# Configure environment for Homebrew
+[ "$(uname)" = Darwin -a -e ~/.brew_profile ] && . ~/.brew_profile
 
 # Private bins
 register_user_bin_path "$HOME/.local/bin"

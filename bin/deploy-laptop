@@ -1,0 +1,367 @@
+#!/bin/bash
+#
+# Since macOS doesn't have a decent packaging system with a lot of packages,
+# all of them are installed using Homebrew, pip and npm. In this case it's
+# much easier to handle all of this mess by script like this which allows to
+# clear all accumulated garbage and reinstall all required packages by one
+# simple command.
+#
+
+set -eu
+shopt -s extglob
+
+question_user() {
+    local answer
+    echo -n "Are you sure want to $1? (y/n) "
+    read answer
+    [ "$answer" = "y" ]
+}
+
+die() {
+    echo "$@" >&2
+    exit 1
+}
+
+is_macos() {
+    [ "$(uname)" = Darwin ]
+}
+
+git_package() {
+    echo -n "git+ssh://git@konishchev.ru/~git/$1.git"
+}
+
+github_package() {
+    echo -n "https://github.com/KonishchevDmitry/$1/archive/master.zip"
+}
+
+uninstall_npm_packages() {
+    which -s npm || return 0
+    echo "Uninstalling npm packages..."
+    npm list -g --depth=0 | grep '@' | sed -E 's/^.*[[:space:]]+([^[:space:]]+)@.*$/\1/' | egrep -v '^npm$' | xargs npm uninstall -g
+    npm uninstall -g npm
+}
+
+uninstall_pip_packages() {
+    echo "Uninstalling pip packages..."
+
+    local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
+
+    if ! is_macos; then
+        list="$list --user"
+    fi
+
+    shopt -s nullglob
+        for version in 2 3 ; do
+            pip=pip$version
+
+            if is_macos; then
+                which -s "$pip" || continue
+                site_prefix="$prefix"
+            else
+                pip=/usr/bin/$pip
+                site_prefix="$(python$version -m site --user-site)"
+            fi
+
+            packages="$($pip $list $flags --format=freeze)"
+
+            for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
+                if is_macos; then
+                    # Don't uninstall pip and setuptools to not break pip
+                    if [ "$package" = "pip" -o "$package" = "setuptools" ]; then
+                        continue
+                    fi
+
+                    # Skip distutils installed packages that can't be uninstalled
+                    if [ "$package" = "gpg" ]; then
+                        continue
+                    fi
+                fi
+
+                package_info="$($pip show $flags "$package")"
+
+                # Filter out system packages
+                egrep -q "^Location: $site_prefix" <<< "$package_info" || continue
+
+                $pip uninstall $flags -y "$package"
+            done
+        done
+    shopt -u nullglob
+}
+
+uninstall_brew_packages() {
+    local symlink
+
+    if [ -e "$prefix/bin/brew" ]; then
+        echo "Uninstalling brew packages..."
+
+        # Execute list commands twice since the first execution may trigger formulae update which produces additional output
+        brew list > /dev/null && brew list | xargs brew uninstall --force
+        hash -r # Clear bash command path cache
+
+        brew cask list > /dev/null && brew cask list | xargs brew cask uninstall
+        hash -r # Clear bash command path cache
+
+        brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs brew untap
+    fi
+
+    for symlink in getopt python; do
+        symlink="$prefix/bin/$symlink"
+
+        if [ -h "$symlink" ]; then
+            unlink "$symlink"
+        fi
+    done
+}
+
+uninstall_brew_distro() {
+    echo "Uninstalling Homebrew distributive files..."
+
+    [ -d "$prefix/.git" ] || return 0
+
+    (
+        cd "$prefix"
+
+        git ls-files -z | xargs -0 rm -f
+        [ ! -d Library ] || find Library -name .gitignore -print0 | xargs -0 rm
+
+        git ls-tree --name-only -d -r -z HEAD | sort -rz | xargs -0 -n 1 -- sh -c '
+            if [ -d "$0" ] && [ -z "$(ls -A "$0")" ]; then
+                rmdir "$0"
+            fi
+        '
+
+        rm -rf .git
+    )
+}
+
+cleanup_brew_files() {
+    cd "$prefix" && (
+        rm -f share/info/dir
+        rm -rf lib/python+([[:digit:]]).+([[:digit:]])
+
+        for dir in bin lib share Library Cellar; do
+            [ ! -d "$dir" ] || find "$dir" -type d -empty -mindepth 1 -delete
+        done
+    )
+}
+
+check_directory() {
+    local dir="$1" white_list="${2:-}" contents
+    [ -d "$dir" ] || return 0
+
+    contents="$(ls -1A "$dir")"
+    [ -z "$white_list" ] || contents="$(egrep -v "$white_list" <<< "$contents")"
+
+    contents="$(
+        while read subdir; do
+            [ "$(ls -1A "$dir/$subdir")" = "" ] || echo "$subdir"
+        done <<< "$contents"
+    )"
+
+    if [ -n "$contents" ]; then
+        echo "Warning: $dir contains the following files:" >&2
+        echo "$contents" >&2
+    fi
+}
+
+uninstall_packages() {
+    if is_macos; then
+        rm -f ~/.brew_profile
+
+        # PyCharm's IdeaVim plugin changes default keyboard settings. To revert them:
+        # defaults delete -g ApplePressAndHoldEnabled
+
+        [ -d "$prefix" ] || die "Homebrew is not installed to $prefix."
+
+        uninstall_npm_packages
+    fi
+
+    uninstall_pip_packages
+
+    if is_macos; then
+        uninstall_brew_packages
+        uninstall_brew_distro
+        cleanup_brew_files
+    fi
+
+    echo "Uninstallation finished successfully."
+
+    if is_macos; then
+        check_directory "$prefix" '^(bin|etc|Homebrew|jamf|munki|var|ya)$'
+    else
+        check_directory "$(python -m site --user-site)"
+        check_directory "$(python3 -m site --user-site)"
+    fi
+}
+
+update_brew() {
+    echo "Updating Homebrew..."
+
+    if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
+        brew untap devtools/tap ||:
+        brew untap yandex/arc ||:
+    else
+        echo "Skip Intranet tools installation - we aren't connected to the Intranet."
+    fi
+
+    if which -s brew; then
+        brew update
+        brew upgrade
+    else
+        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+        brew doctor
+    fi
+}
+
+install_brew_packages() {
+    set -x
+
+    # Homebrew's bash in contrast to system's bash supports completion
+    #
+    # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal emulator
+    brew install bash bash-completion
+    brew install cargo-completion pip-completion vagrant-completion
+
+    brew install gnu-getopt
+    [ -h "$prefix/bin/getopt" ] || ln -s "$prefix/opt/gnu-getopt/bin/getopt" "$prefix/bin/getopt"
+
+    brew install coreutils diffutils findutils gawk gnu-sed gpatch grep less make
+
+    brew install unbound ||: # gnupg depends on unbound but it produces an error during installation
+    brew install ansible dsh git glances gnupg htop httpie mosh mutt ncdu pdsh pstree rsync svn the_silver_searcher telnet terraform tmux tree vim watch
+
+    # Configure ssh-askpass
+    #
+    # Attention:
+    #
+    # To enable ssh-askpass the following actions must be made:
+    # * Disable OS X SIP (http://www.imore.com/el-capitan-system-integrity-protection-helps-keep-malware-away)
+    # * sudo ln -s /usr/local/bin/ssh-askpass /usr/X11R6/bin/ssh-askpass
+    # * Enable OS X SIP
+    #
+    # This script can't properly uninstall the installed ssh-askpass, because
+    # SIP won't allow it to delete the manually created
+    # /usr/X11R6/bin/ssh-askpass simlink.
+    #
+    #brew tap theseal/ssh-askpass
+    #brew install ssh-askpass
+
+    # OS notifications from scripts
+    brew install terminal-notifier
+
+    brew install go python3 python2
+    if [ ! -e "$prefix/bin/python" ]; then
+        ln -s python2 "$prefix/bin/python"
+    fi
+    brew install pyenv pyenv-virtualenvwrapper
+
+    brew install Caskroom/cask/osxfuse
+    brew install bindfs
+    brew install encfs
+
+    # Development libraries
+    brew install libxml2 openssl
+    brew link --force openssl
+
+    if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
+        brew tap devtools/tap https://github.yandex-team.ru/devtools/tap.git
+        brew install executer
+
+        brew tap --full yandex/arc https://arc-vcs.yandex-team.ru/homebrew-tap
+        brew install arc-launcher
+    else
+        echo "Skip Intranet tools installation - we aren't connected to the Intranet."
+    fi
+
+    # Cleanup old package versions
+    brew cleanup
+
+    set +x
+}
+
+configure_environment() {
+    local gnubin_path="$(find -L /usr/local/opt -name gnubin | sort | tr '\n' :)"
+    local gnuman_path="$(find -L /usr/local/opt -name gnuman | sort | tr '\n' :)"
+
+    cat > ~/.brew_profile <<EOF
+#!/bin/sh
+#
+# Configures environment for Homebrew (auto-generated by deploy-laptop)
+#
+
+[ -n "\$MANPATH" ] || export MANPATH=$prefix/share/man:/usr/share/man
+
+PATH="$gnubin_path\$PATH"
+MANPATH="$gnuman_path\$MANPATH"
+EOF
+}
+
+install_pip_packages() {
+    local script script_type requirements
+    local install=install
+
+    if ! is_macos; then
+        install="$install --user"
+    fi
+
+    if is_macos; then
+        pip2 $install --disable-pip-version-check --upgrade pip
+        pip2 $install -U virtualenvwrapper
+    fi
+
+    pip3 $install --disable-pip-version-check --upgrade pip
+    pip3 $install -U ipython virtualenv virtualenvwrapper
+
+    shopt -s nullglob
+        for script in ~/bin/* ~/sbin/* ~/src/investment-tools/*; do
+            script_type="$(file --mime-type --brief "$script")"
+            [ "$script_type" = 'text/x-python' ] || continue
+
+            requirements="$(get-script-requirements "$script")"
+            [ -z "$requirements" ] || pip3 $install -U $requirements
+        done
+    shopt -u nullglob
+
+    #pip3 $install -U $(github_package pydeposits)
+}
+
+install_packages() {
+    if is_macos; then
+        update_brew
+    fi
+
+    echo "Installing all packages..."
+
+    if is_macos; then
+        install_brew_packages
+        configure_environment
+    fi
+
+    install_pip_packages
+
+    echo "Installation finished successfully."
+}
+
+show_usage() {
+    die "Usage: $0 {install|uninstall}"
+}
+
+if [ $# -ne 1 ]; then
+    show_usage
+fi
+
+if [ "$(whoami)" = root ]; then
+    die "The script must be run from user."
+fi
+
+prefix=/usr/local
+
+# Deactivate pyenv to work with real Python
+pyenv_shims_path=~/.pyenv/shims
+PATH=$(sed "s#$pyenv_shims_path:##" <<< "$PATH")
+
+case $1 in
+    "install") question_user "install all required packages" && install_packages ;;
+    "uninstall") question_user "uninstall all required packages" && uninstall_packages ;;
+    *) show_usage ;;
+esac

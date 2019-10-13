@@ -17,7 +17,7 @@ private-dotfiles-git() { git --git-dir ~/.git-private-dotfiles --work-tree ~ "$@
 # If called as `ssh-tmux -A` ssh agent will be properly forwarded into tmux session.
 # If called as `ssh-tmux` it's expected that agent is available on remote host at ~/.ssh/tmux-agent.socket.
 ssh-tmux() {
-    ssh "$@" -t -- '
+    ssh -t "$@" '
         agent_socket=~/.ssh/tmux-agent.socket
 
         if [ -n "$SSH_AUTH_SOCK" -a -e "$SSH_AUTH_SOCK" -a ! "$agent_socket" -ef "$SSH_AUTH_SOCK" ]; then
@@ -43,3 +43,18 @@ server() {
         mosh "$host" sbin/mosh-tmux-login
     fi
 }
+
+if [ "$(uname)" = Darwin ]; then
+    # OS X notifications from terminal
+    #
+    # Usage:
+    # $ shell_command; notify
+    notify () {
+        local rc=$?
+        local status
+        [ "$rc" -eq 0 ] && status='Success:' || status='Failure:'
+        local message="$(history | sed -nE '$ s/^[[:space:]]*[0-9]+[[:space:]]*(.*)[[:space:]]*;[[:space:]]*notify[[:space:]]*$/\1/ p')"
+        terminal-notifier -message "$status $message"
+        return $rc
+    }
+fi

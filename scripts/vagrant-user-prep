@@ -4,5 +4,5 @@
 #
 
 set -eu
-sudo apt-get install -y git curl silversearcher-ag
+sudo apt-get install -y git curl silversearcher-ag httpie
 sh <(curl https://raw.githubusercontent.com/KonishchevDmitry/dotfiles/master/bin/setup-dotfiles) --force
