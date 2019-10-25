@@ -225,7 +225,7 @@ install_brew_packages() {
     brew install gnu-getopt
     [ -h "$prefix/bin/getopt" ] || ln -s "$prefix/opt/gnu-getopt/bin/getopt" "$prefix/bin/getopt"
 
-    brew install coreutils diffutils findutils gawk gnu-sed gpatch grep less make
+    brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
     brew install unbound ||: # gnupg depends on unbound but it produces an error during installation
     brew install ansible dsh git glances gnupg htop httpie jq mosh mutt ncdu pdsh pstree rsync svn the_silver_searcher telnet terraform tmux tree vim watch
