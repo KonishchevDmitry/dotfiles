@@ -2,12 +2,21 @@
 
 " Tune syntax highlighting
 hi clear SpellBad
+hi clear SpellRare
+hi clear SpellCap
+hi clear SpellLocal
 
 " MacVim complains about undercurl in console mode
 if has("gui_running")
     hi SpellBad cterm=underline guisp=undercurl
+    hi SpellRare cterm=underline guisp=undercurl
+    hi SpellCap cterm=underline guisp=undercurl
+    hi SpellLocal cterm=underline guisp=undercurl
 else
     hi SpellBad cterm=underline
+    hi SpellRare cterm=underline
+    hi SpellCap cterm=underline
+    hi SpellLocal cterm=underline
 endif
 
 " Enable spell checking by default
