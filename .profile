@@ -25,6 +25,7 @@ register_user_bin_path() {
 [ "$(uname)" = Darwin -a -e ~/.brew_profile ] && . ~/.brew_profile
 
 # Private bins
+register_user_bin_path /opt/bin
 register_user_bin_path "$HOME/.local/bin"
 register_user_bin_path "$HOME/bin"
 register_user_bin_path "$HOME/sbin"
