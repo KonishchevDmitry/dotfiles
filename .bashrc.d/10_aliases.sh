@@ -1,6 +1,7 @@
 # Configure aliases
 
 alias l='ls -lhaF'
+alias r=ranger
 
 alias g='gvim'
 alias v='vim'
