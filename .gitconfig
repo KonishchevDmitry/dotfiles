@@ -35,3 +35,6 @@
 	prompt = false
 [mergetool "meld"]
     cmd = "meld $LOCAL $MERGED $REMOTE"
+
+[url "git@bb.yandex-team.ru:"]
+    insteadOf = https://bb.yandex-team.ru/scm
