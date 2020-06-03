@@ -249,10 +249,10 @@ install_brew_packages() {
     # OS notifications from scripts
     brew install terminal-notifier
 
-    brew install go python3 python2
-    if [ ! -e "$prefix/bin/python" ]; then
-        ln -s python2 "$prefix/bin/python"
-    fi
+    brew install go python3
+    #if [ ! -e "$prefix/bin/python" ]; then
+    #    ln -s python2 "$prefix/bin/python"
+    #fi
     brew install pyenv pyenv-virtualenvwrapper
 
     brew install Caskroom/cask/osxfuse
