@@ -226,7 +226,7 @@ install_brew_packages() {
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
     brew install unbound ||: # gnupg depends on unbound but it produces an error during installation
-    brew install ansible git gnupg htop httpie jq mosh mutt ncdu pstree rsync svn the_silver_searcher telnet terraform tmux tree vim watch
+    brew install ansible git gnupg htop httpie jq mosh mutt ncdu pstree ranger rsync svn the_silver_searcher telnet terraform tmux tree vim watch
 
     # Configure ssh-askpass
     #
