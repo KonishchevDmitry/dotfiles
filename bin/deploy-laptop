@@ -218,7 +218,7 @@ install_brew_packages() {
     # Homebrew's bash in contrast to system's bash supports completion
     #
     # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal emulator
-    brew install bash bash-completion cargo-completion pip-completion vagrant-completion
+    brew install bash bash-completion pip-completion vagrant-completion
 
     brew install gnu-getopt
     [ -h "$prefix/bin/getopt" ] || ln -s "$prefix/opt/gnu-getopt/bin/getopt" "$prefix/bin/getopt"
@@ -226,7 +226,11 @@ install_brew_packages() {
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
     brew install unbound ||: # gnupg depends on unbound but it produces an error during installation
-    brew install ansible git gnupg htop httpie jq mosh mutt ncdu pstree ranger rsync svn the_silver_searcher telnet terraform tmux tree vim watch
+    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger rsync svn the_silver_searcher telnet terraform tmux tree vim watch
+
+    brew install mutt
+    sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
+    sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
     # Configure ssh-askpass
     #
@@ -249,7 +253,7 @@ install_brew_packages() {
 
     brew install go python
     #brew install pyenv pyenv-virtualenvwrapper
-    brew install Caskroom/cask/osxfuse bindfs encfs
+    #brew install Caskroom/cask/osxfuse bindfs encfs
 
     # Development libraries
     brew install libxml2 openssl
@@ -297,9 +301,9 @@ install_pip_packages() {
     pip3 $install -U ipython virtualenv virtualenvwrapper
 
     shopt -s nullglob
-        for script in ~/bin/* ~/sbin/* ~/src/investment-tools/*; do
+        for script in ~/bin/* ~/sbin/*; do
             script_type="$(file --mime-type --brief "$script")"
-            [ "$script_type" = 'text/x-python' ] || continue
+            [ "$script_type" = 'text/x-script.python' ] || continue
 
             requirements="$(get-script-requirements "$script")"
             [ -z "$requirements" ] || pip3 $install -U $requirements
