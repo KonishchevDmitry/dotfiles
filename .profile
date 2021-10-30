@@ -26,6 +26,7 @@ register_user_bin_path() {
 
 # Private bins
 register_user_bin_path /opt/bin
+register_user_bin_path /opt/scripts
 register_user_bin_path "$HOME/.local/bin"
 register_user_bin_path "$HOME/bin"
 register_user_bin_path "$HOME/sbin"
