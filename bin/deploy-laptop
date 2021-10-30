@@ -259,6 +259,7 @@ install_brew_packages() {
     brew install libxml2 openssl
     brew link --force openssl
 
+    brew install --cask macfuse
     if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
         brew tap --full yandex/arc https://arc-vcs.yandex-team.ru/homebrew-tap
         brew install arc-launcher
