@@ -33,6 +33,7 @@ unset virtualenvwrapper
 
 # Set up Rust environment
 [ -d ~/.cargo/bin ] && export PATH=~/.cargo/bin":$PATH"
+export RUST_BACKTRACE=1
 
 # Set up Go workspace
 export GOPATH=~/go
