@@ -261,7 +261,7 @@ install_brew_packages() {
 
     brew install --cask macfuse
     if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
-        brew tap --full yandex/arc https://arc-vcs.yandex-team.ru/homebrew-tap
+        brew tap yandex/arc https://arc-vcs.yandex-team.ru/homebrew-tap
         brew install arc-launcher
     else
         echo "Skip Intranet tools installation - we aren't connected to the Intranet."
@@ -299,7 +299,7 @@ install_pip_packages() {
     fi
 
     pip3 $install --disable-pip-version-check --upgrade pip
-    pip3 $install -U ipython virtualenv virtualenvwrapper
+    pip3 $install -U ipython virtualenv virtualenvwrapper pyyaml
 
     shopt -s nullglob
         for script in ~/bin/* ~/sbin/*; do
