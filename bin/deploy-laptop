@@ -251,7 +251,7 @@ install_brew_packages() {
     # OS notifications from scripts
     brew install terminal-notifier
 
-    brew install go python
+    brew install go python colima
     #brew install pyenv pyenv-virtualenvwrapper
     #brew install Caskroom/cask/osxfuse bindfs encfs
 
