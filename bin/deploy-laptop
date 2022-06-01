@@ -26,14 +26,6 @@ is_macos() {
     [ "$(uname)" = Darwin ]
 }
 
-git_package() {
-    echo -n "git+ssh://git@konishchev.ru/~git/$1.git"
-}
-
-github_package() {
-    echo -n "https://github.com/KonishchevDmitry/$1/archive/master.zip"
-}
-
 uninstall_npm_packages() {
     which -s npm || return 0
     echo "Uninstalling npm packages..."
@@ -96,9 +88,6 @@ uninstall_brew_packages() {
 
         # Execute list commands twice since the first execution may trigger formulae update which produces additional output
         brew list > /dev/null && brew list | xargs brew uninstall --force
-        hash -r # Clear bash command path cache
-
-        brew cask list > /dev/null && brew cask list | xargs brew cask uninstall
         hash -r # Clear bash command path cache
 
         brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs brew untap
@@ -167,12 +156,7 @@ check_directory() {
 uninstall_packages() {
     if is_macos; then
         rm -f ~/.brew_profile
-
-        # PyCharm's IdeaVim plugin changes default keyboard settings. To revert them:
-        # defaults delete -g ApplePressAndHoldEnabled
-
         [ -d "$prefix" ] || die "Homebrew is not installed to $prefix."
-
         uninstall_npm_packages
     fi
 
@@ -197,10 +181,10 @@ uninstall_packages() {
 update_brew() {
     echo "Updating Homebrew..."
 
-    if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
+    if curl "$arc_tap" --connect-timeout 1 > /dev/null 2>&1; then
         brew untap yandex/arc ||:
     else
-        echo "Skip Intranet tools installation - we aren't connected to the Intranet."
+        echo "Skip arc update - we aren't connected to the Intranet."
     fi
 
     if which -s brew; then
@@ -225,46 +209,25 @@ install_brew_packages() {
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install unbound ||: # gnupg depends on unbound but it produces an error during installation
-    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger rsync svn the_silver_searcher telnet terraform tmux tree vim wakeonlan watch
+    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger rsync the_silver_searcher \
+        telnet terminal-notifier terraform tmux tree vim wakeonlan watch
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    # Configure ssh-askpass
-    #
-    # Attention:
-    #
-    # To enable ssh-askpass the following actions must be made:
-    # * Disable OS X SIP (http://www.imore.com/el-capitan-system-integrity-protection-helps-keep-malware-away)
-    # * sudo ln -s /usr/local/bin/ssh-askpass /usr/X11R6/bin/ssh-askpass
-    # * Enable OS X SIP
-    #
-    # This script can't properly uninstall the installed ssh-askpass, because
-    # SIP won't allow it to delete the manually created
-    # /usr/X11R6/bin/ssh-askpass simlink.
-    #
-    #brew tap theseal/ssh-askpass
-    #brew install ssh-askpass
-
-    # OS notifications from scripts
-    brew install terminal-notifier
-
-    brew install go python colima
-    #brew install pyenv pyenv-virtualenvwrapper
-    #brew install Caskroom/cask/osxfuse bindfs encfs
+    brew install go python
 
     # Development libraries
     brew install libxml2 openssl
     brew link --force openssl
 
     brew install --cask macfuse
-    if curl https://github.yandex-team.ru/ --connect-timeout 1 > /dev/null 2>&1; then
-        brew tap yandex/arc https://arc-vcs.yandex-team.ru/homebrew-tap
+    if curl "$arc_tap" --connect-timeout 1 > /dev/null 2>&1; then
+        brew tap yandex/arc "$arc_tap"
         brew install arc-launcher
     else
-        echo "Skip Intranet tools installation - we aren't connected to the Intranet."
+        echo "Skip arc installation - we aren't connected to the Intranet."
     fi
 
     # Cleanup old package versions
@@ -274,8 +237,8 @@ install_brew_packages() {
 }
 
 configure_environment() {
-    local gnubin_path="$(find -L /usr/local/opt -name gnubin | sort | tr '\n' :)"
-    local gnuman_path="$(find -L /usr/local/opt -name gnuman | sort | tr '\n' :)"
+    local gnubin_path="$(find -L "$prefix/opt" -name gnubin | sort | tr '\n' :)"
+    local gnuman_path="$(find -L "$prefix/opt" -name gnuman | sort | tr '\n' :)"
 
     cat > ~/.brew_profile <<EOF
 #!/bin/sh
@@ -310,8 +273,6 @@ install_pip_packages() {
             [ -z "$requirements" ] || pip3 $install -U $requirements
         done
     shopt -u nullglob
-
-    #pip3 $install -U $(github_package pydeposits)
 }
 
 install_packages() {
@@ -344,6 +305,7 @@ if [ "$(whoami)" = root ]; then
 fi
 
 prefix=/usr/local
+arc_tap=https://arc-vcs.yandex-team.ru/homebrew-tap
 
 # Deactivate pyenv to work with real Python
 pyenv_shims_path=~/.pyenv/shims
