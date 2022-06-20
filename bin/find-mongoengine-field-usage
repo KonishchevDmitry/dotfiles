@@ -1,7 +1,0 @@
-#!/bin/sh
-#
-# Finds all usages of MongoEngine's field in the code
-#
-
-field="$1"
-exec git grep -n -C 5 "\\<${field}\\>\\|__${field}__\\|\\<${field}__\\|__${field}\\>"
