@@ -262,7 +262,7 @@ install_pip_packages() {
     fi
 
     pip3 $install --disable-pip-version-check --upgrade pip
-    pip3 $install -U ipython virtualenv virtualenvwrapper pyyaml
+    pip3 $install -U ipython virtualenv virtualenvwrapper pyyaml TxtStyle
 
     shopt -s nullglob
         for script in ~/bin/* ~/sbin/*; do
