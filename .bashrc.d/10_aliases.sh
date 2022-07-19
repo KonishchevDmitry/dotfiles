@@ -36,7 +36,13 @@ ssh-tmux() {
 # ssh to tmux session on the home server
 server() {
     local host="server.lan"
-    host -a -W 1 "$host" > /dev/null 2>&1 || host="konishchev.ru"
+    {
+        # General case: relying on DNS
+        # host -a -W 1 "$host" > /dev/null 2>&1
+
+        # VPN workaround: VPN overrides DNS, but IP is in /etc/hosts
+        ping -c 3 -i 0.1 -t 1 -o server.lan > /dev/null 2>&1
+    } || host="konishchev.ru"
 
     if [ "$1" == ssh ]; then
         ssh-tmux "$host"
