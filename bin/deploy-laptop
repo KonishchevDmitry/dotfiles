@@ -265,7 +265,7 @@ install_pip_packages() {
     pip3 $install -U ipython virtualenv virtualenvwrapper pyyaml TxtStyle
 
     shopt -s nullglob
-        for script in ~/bin/* ~/sbin/*; do
+        for script in ~/bin/* ~/.local/bin/*; do
             script_type="$(file --mime-type --brief "$script")"
             [ "$script_type" = 'text/x-script.python' ] || continue
 

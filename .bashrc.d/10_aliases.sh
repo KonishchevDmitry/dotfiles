@@ -47,7 +47,7 @@ server() {
     if [ "$1" == ssh ]; then
         ssh-tmux "$host"
     else
-        mosh "$host" sbin/mosh-tmux-login
+        mosh "$host" .local/bin/mosh-tmux-login
     fi
 }
 
