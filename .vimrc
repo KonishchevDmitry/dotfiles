@@ -106,7 +106,7 @@ if !has('gui_running') && &t_Co < 256
 endif
 
 "colorscheme torte
-"colorscheme elflord
+colorscheme elflord
 " Set different color scheme for vimdiff
 "if &diff
 "    colorscheme delek
