@@ -11,26 +11,11 @@ __is_light_background &&
 
 # git for dotfiles
 dotfiles-git() { git --git-dir ~/.git-dotfiles --work-tree ~ "$@"; }
-os-dotfiles-git() { git --git-dir ~/.git-os-dotfiles --work-tree ~ "$@"; }
 private-dotfiles-git() { git --git-dir ~/.git-private-dotfiles --work-tree ~ "$@"; }
 
 # ssh to tmux session
-# If called as `ssh-tmux -A` ssh agent will be properly forwarded into tmux session.
-# If called as `ssh-tmux` it's expected that agent is available on remote host at ~/.ssh/tmux-agent.socket.
 ssh-tmux() {
-    ssh -t "$@" '
-        agent_socket=~/.ssh/tmux-agent.socket
-
-        if [ -n "$SSH_AUTH_SOCK" -a -e "$SSH_AUTH_SOCK" -a ! "$agent_socket" -ef "$SSH_AUTH_SOCK" ]; then
-            install -d -m 700 ~/.ssh && rm -f "$agent_socket" && ln -s "$SSH_AUTH_SOCK" "$agent_socket"
-        fi
-
-        export SSH_AUTH_SOCK="$agent_socket"
-
-        # TODO: May be replaced by `tmux new-session -A -s admin` for new tmux versions
-        tmux has-session -t ssh 2>/dev/null || tmux new-session -s ssh -d
-        exec tmux attach-session -t ssh
-    '
+    ssh -t "$@" -- tmux new-session -A -s ssh
 }
 
 # ssh to tmux session on the home server
@@ -47,7 +32,7 @@ server() {
     if [ "$1" == ssh ]; then
         ssh-tmux "$host"
     else
-        mosh "$host" .local/bin/mosh-tmux-login
+        mosh "$host" -- tmux new-session -A -s ssh
     fi
 }
 
