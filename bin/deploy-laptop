@@ -1,202 +1,77 @@
 #!/bin/bash
 #
-# Since macOS doesn't have a decent packaging system with a lot of packages,
-# all of them are installed using Homebrew, pip and npm. In this case it's
-# much easier to handle all of this mess by script like this which allows to
-# clear all accumulated garbage and reinstall all required packages by one
-# simple command.
+# Since macOS doesn't have a decent packaging system with a lot of packages, all of them are installed using Homebrew
+# and language-specific package managers. In this case it's much easier to handle all of this mess by script like this
+# which allows to clear all accumulated garbage and reinstall all required packages by one simple command.
 #
 
 set -eu
 shopt -s extglob
 
-question_user() {
-    local answer
-    echo -n "Are you sure want to $1? (y/n) "
-    read answer
-    [ "$answer" = "y" ]
-}
-
-die() {
-    echo "$@" >&2
-    exit 1
-}
-
-is_macos() {
-    [ "$(uname)" = Darwin ]
-}
-
-uninstall_npm_packages() {
-    which -s npm || return 0
-    echo "Uninstalling npm packages..."
-    npm list -g --depth=0 | grep '@' | sed -E 's/^.*[[:space:]]+([^[:space:]]+)@.*$/\1/' | egrep -v '^npm$' | xargs npm uninstall -g
-    npm uninstall -g npm
-}
-
-uninstall_pip_packages() {
-    echo "Uninstalling pip packages..."
-
-    local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
-
-    if ! is_macos; then
-        list="$list --user"
-    fi
-
-    shopt -s nullglob
-        for version in 2 3 ; do
-            pip=pip$version
-
-            if is_macos; then
-                which -s "$pip" || continue
-                site_prefix="$prefix"
-            else
-                pip=/usr/bin/$pip
-                site_prefix="$(python$version -m site --user-site)"
-            fi
-
-            packages="$($pip $list $flags --format=freeze)"
-
-            for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
-                if is_macos; then
-                    # Don't uninstall pip and setuptools to not break pip
-                    if [ "$package" = "pip" -o "$package" = "setuptools" ]; then
-                        continue
-                    fi
-
-                    # Skip distutils installed packages that can't be uninstalled
-                    if [ "$package" = "gpg" ]; then
-                        continue
-                    fi
-                fi
-
-                package_info="$($pip show $flags "$package")"
-
-                # Filter out system packages
-                egrep -q "^Location: $site_prefix" <<< "$package_info" || continue
-
-                $pip uninstall $flags -y "$package"
-            done
-        done
-    shopt -u nullglob
-}
-
-uninstall_brew_packages() {
-    local symlink
-
-    if [ -e "$prefix/bin/brew" ]; then
-        echo "Uninstalling brew packages..."
-
-        # Execute list commands twice since the first execution may trigger formulae update which produces additional output
-        brew list > /dev/null && brew list | xargs brew uninstall --force
-        hash -r # Clear bash command path cache
-
-        brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs brew untap
-    fi
-
-    for symlink in getopt python; do
-        symlink="$prefix/bin/$symlink"
-
-        if [ -h "$symlink" ]; then
-            unlink "$symlink"
+install-all() {
+    if is-macos; then
+        if ! which -s brew; then
+            log "Installing Homebrew..."
+            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+            brew doctor
         fi
-    done
-}
-
-uninstall_brew_distro() {
-    echo "Uninstalling Homebrew distributive files..."
-
-    [ -d "$prefix/.git" ] || return 0
-
-    (
-        cd "$prefix"
-
-        git ls-files -z | xargs -0 rm -f
-        [ ! -d Library ] || find Library -name .gitignore -print0 | xargs -0 rm
-
-        git ls-tree --name-only -d -r -z HEAD | sort -rz | xargs -0 -n 1 -- sh -c '
-            if [ -d "$0" ] && [ -z "$(ls -A "$0")" ]; then
-                rmdir "$0"
-            fi
-        '
-
-        rm -rf .git
-    )
-}
-
-cleanup_brew_files() {
-    cd "$prefix" && (
-        rm -f share/info/dir
-        rm -rf lib/python+([[:digit:]]).+([[:digit:]])
-
-        for dir in bin lib share Library Cellar; do
-            [ ! -d "$dir" ] || find "$dir" -type d -empty -mindepth 1 -delete
-        done
-    )
-}
-
-check_directory() {
-    local dir="$1" white_list="${2:-}" contents
-    [ -d "$dir" ] || return 0
-
-    contents="$(ls -1A "$dir")"
-    [ -z "$white_list" ] || contents="$(egrep -v "$white_list" <<< "$contents")"
-
-    contents="$(
-        while read subdir; do
-            [ "$(ls -1A "$dir/$subdir")" = "" ] || echo "$subdir"
-        done <<< "$contents"
-    )"
-
-    if [ -n "$contents" ]; then
-        echo "Warning: $dir contains the following files:" >&2
-        echo "$contents" >&2
+        update-brew
     fi
+
+    if is-macos; then
+        install-brew-packages
+        configure-environment
+    fi
+
+    install-rust-packages
+    install-python-packages
+
+    cleanup-caches
+
+    log "Installation finished successfully."
 }
 
-uninstall_packages() {
-    if is_macos; then
+uninstall-all() {
+    if is-macos; then
         rm -f ~/.brew_profile
         [ -d "$prefix" ] || die "Homebrew is not installed to $prefix."
-        uninstall_npm_packages
     fi
 
-    uninstall_pip_packages
+    cleanup-caches
+    uninstall-python-packages
+    uninstall-rust-packages
 
-    if is_macos; then
-        uninstall_brew_packages
-        uninstall_brew_distro
-        cleanup_brew_files
+    if is-macos; then
+        uninstall-brew-packages
+        uninstall-brew-distro
+        cleanup-brew-files
     fi
 
-    echo "Uninstallation finished successfully."
+    log "Uninstallation finished successfully."
 
-    if is_macos; then
-        check_directory "$prefix" '^(bin|etc|Homebrew|jamf|munki|var|ya)$'
+    if is-macos; then
+        check-directory "$prefix" '^(bin|etc|Homebrew|jamf|munki|var|ya)$'
     else
-        check_directory "$(python -m site --user-site)"
-        check_directory "$(python3 -m site --user-site)"
+        check-directory "$(python -m site --user-site)"
+        check-directory "$(python3 -m site --user-site)"
     fi
 }
 
-update_brew() {
-    echo "Updating Homebrew..."
+upgrade-all() {
+    log "Upgrading all installed packages..."
 
-    if curl "$arc_tap" --connect-timeout 1 > /dev/null 2>&1; then
-        brew untap yandex/arc ||:
-    else
-        echo "Skip arc update - we aren't connected to the Intranet."
-    fi
+    (
+        set -x
+        brew update && brew upgrade
+        rustup update && cargo install-update --all
+    )
+    cleanup-caches
 
-    if which -s brew; then
-        brew update
-        brew upgrade
-    else
-        ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-        brew doctor
-    fi
+    log "Upgrade finished successfully."
 }
 
-install_brew_packages() {
+install-brew-packages() {(
+    log "Installing Homebrew packages..."
     set -x
 
     # Homebrew's bash in contrast to system's bash supports completion
@@ -209,34 +84,26 @@ install_brew_packages() {
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger rsync the_silver_searcher \
-        telnet terminal-notifier terraform tmux tree vim wakeonlan watch
+    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger rsync sslscan \
+        the_silver_searcher telnet terminal-notifier terraform tmux tree vim wakeonlan watch
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    brew install go python
+    go_version=1.18
+    brew install "go@$go_version" && brew link "go@$go_version"
+    brew install python
 
     # Development libraries
     brew install libxml2 openssl
     brew link --force openssl
 
     brew install --cask macfuse
-    if curl "$arc_tap" --connect-timeout 1 > /dev/null 2>&1; then
-        brew tap yandex/arc "$arc_tap"
-        brew install arc-launcher
-    else
-        echo "Skip arc installation - we aren't connected to the Intranet."
-    fi
+    brew tap yandex/arc "$arc_tap" && brew install arc-launcher
+)}
 
-    # Cleanup old package versions
-    brew cleanup
-
-    set +x
-}
-
-configure_environment() {
+configure-environment() {
     local gnubin_path="$(find -L "$prefix/opt" -name gnubin | sort | tr '\n' :)"
     local gnuman_path="$(find -L "$prefix/opt" -name gnuman | sort | tr '\n' :)"
 
@@ -253,11 +120,102 @@ MANPATH="$gnuman_path\$MANPATH"
 EOF
 }
 
-install_pip_packages() {
+update-brew() {
+    log "Updating Homebrew..."
+
+    if ! curl -fL --connect-timeout 1 "$arc_tap" > /dev/null 2>&1; then
+        die "Please connect to the Intranet."
+    fi
+
+    brew update
+    brew upgrade
+}
+
+uninstall-brew-packages() {
+    local symlink
+
+    if [ -e "$prefix/bin/brew" ]; then
+        log "Uninstalling brew packages..."
+
+        # Execute list commands twice since the first execution may trigger formulae update which produces additional output
+        brew list > /dev/null && brew list | xargs -r brew uninstall --force
+        hash -r # Clear bash command path cache
+
+        brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs -r brew untap
+    fi
+
+    for symlink in getopt go python; do
+        symlink="$prefix/bin/$symlink"
+
+        if [ -h "$symlink" ]; then
+            unlink "$symlink"
+        fi
+    done
+}
+
+uninstall-brew-distro() {
+    log "Uninstalling Homebrew distributive files..."
+
+    [ -d "$prefix/.git" ] || return 0
+
+    (
+        cd "$prefix"
+
+        git ls-files -z | xargs -r0 rm -f
+        [ ! -d Library ] || find Library -name .gitignore -print0 | xargs -r0 rm
+
+        git ls-tree --name-only -d -r -z HEAD | sort -rz | xargs -r0 -n 1 -- sh -c '
+            if [ -d "$0" ] && [ -z "$(ls -A "$0")" ]; then
+                rmdir "$0"
+            fi
+        '
+
+        rm -rf .git
+    )
+}
+
+cleanup-brew-files() {
+    cd "$prefix" && (
+        rm -f share/info/dir
+        rm -rf lib/python+([[:digit:]]).+([[:digit:]])
+
+        for dir in bin lib share Library Cellar; do
+            [ ! -d "$dir" ] || find "$dir" -type d -empty -mindepth 1 -delete
+        done
+    )
+}
+
+install-rust-packages() {
+    log "Installing Rust packages..."
+
+    if ! which -s rustup; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    fi
+    source ~/.cargo/env
+
+    (
+        set -x
+        cargo install cargo-cache cargo-edit cargo-release cargo-update investments vsb
+    )
+}
+
+uninstall-rust-packages() {
+    which -s cargo || return 0
+
+    log "Uninstalling Rust packages..."
+    (
+        set -o pipefail
+        cargo install --list | sed -rn 's/^([^[:space:]]+) v([^:]+):$/\1@\2/p' | xargs -r cargo uninstall
+    )
+}
+
+install-python-packages() {
+    log "Installing Python packages..."
+
     local script script_type requirements
     local install=install
 
-    if ! is_macos; then
+    if ! is-macos; then
         install="$install --user"
     fi
 
@@ -275,29 +233,118 @@ install_pip_packages() {
     shopt -u nullglob
 }
 
-install_packages() {
-    if is_macos; then
-        update_brew
+uninstall-python-packages() {
+    local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
+
+    if ! is-macos; then
+        list="$list --user"
     fi
 
-    echo "Installing all packages..."
+    shopt -s nullglob
+        for version in 2 3 ; do
+            pip=pip$version
 
-    if is_macos; then
-        install_brew_packages
-        configure_environment
-    fi
+            if is-macos; then
+                which -s "$pip" || continue
+                site_prefix="$prefix"
+            else
+                pip=/usr/bin/$pip
+                site_prefix="$(python$version -m site --user-site)"
+            fi
 
-    install_pip_packages
+            log "Uninstalling Python$version packages..."
+            packages="$($pip $list $flags --format=freeze)"
 
-    echo "Installation finished successfully."
+            for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
+                if is-macos; then
+                    # Don't uninstall pip and setuptools to not break pip
+                    if [[ "$package" == pip || "$package" == setuptools ]]; then
+                        continue
+                    fi
+
+                    # Skip distutils installed packages that can't be uninstalled
+                    if [[ "$package" == gpg || "$package" == PyGObject ]]; then
+                        continue
+                    fi
+                fi
+
+                package_info="$($pip show $flags "$package")"
+
+                # Filter out system packages
+                egrep -q "^Location: $site_prefix" <<< "$package_info" || continue
+
+                $pip uninstall $flags -y "$package"
+            done
+        done
+    shopt -u nullglob
 }
 
-show_usage() {
-    die "Usage: $0 {install|uninstall}"
+cleanup-caches() {
+    log "Cleaning up caches..."
+    (
+        set -x
+
+        if which -s brew; then
+            brew cleanup
+        fi
+
+        if which -s cargo-cache; then
+            cargo cache --keep-duplicate-crates 0
+            cargo cache --autoclean-expensive
+        fi
+
+        if which -s go; then
+            go clean -cache -modcache -testcache -fuzzcache
+        fi
+    )
+}
+
+check-directory() {
+    local dir="$1" white_list="${2:-}" contents
+    [ -d "$dir" ] || return 0
+
+    contents="$(ls -1A "$dir")"
+    [ -z "$white_list" ] || contents="$(egrep -v "$white_list" <<< "$contents")"
+
+    contents="$(
+        while read subdir; do
+            [ "$(ls -1A "$dir/$subdir")" = "" ] || echo "$subdir"
+        done <<< "$contents"
+    )"
+
+    if [ -n "$contents" ]; then
+        log "Warning: $dir contains the following files:"$'\n'"$contents" >&2
+    fi
+}
+
+question-user() {
+    local answer
+
+    echo -n "Are you sure want to $1? (y/n) "
+    read answer
+
+    [ "$answer" = "y" ] || return 1
+}
+
+log() {
+    echo $'\n'"> $@"
+}
+
+die() {
+    echo "$@" >&2
+    exit 1
+}
+
+is-macos() {
+    [ "$(uname)" = Darwin ]
+}
+
+show-usage() {
+    die "Usage: $0 {install|upgrade|uninstall}"
 }
 
 if [ $# -ne 1 ]; then
-    show_usage
+    show-usage
 fi
 
 if [ "$(whoami)" = root ]; then
@@ -307,12 +354,9 @@ fi
 prefix=/usr/local
 arc_tap=https://arc-vcs.yandex-team.ru/homebrew-tap
 
-# Deactivate pyenv to work with real Python
-pyenv_shims_path=~/.pyenv/shims
-PATH=$(sed "s#$pyenv_shims_path:##" <<< "$PATH")
-
 case $1 in
-    "install") question_user "install all required packages" && install_packages ;;
-    "uninstall") question_user "uninstall all required packages" && uninstall_packages ;;
-    *) show_usage ;;
+    "install") question-user "install all required packages" && install-all ;;
+    "upgrade") question-user "upgrade all installed packages" && upgrade-all ;;
+    "uninstall") question-user "uninstall all packages" && uninstall-all ;;
+    *) show-usage ;;
 esac
