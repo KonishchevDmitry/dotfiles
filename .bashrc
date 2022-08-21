@@ -10,6 +10,22 @@
 PS1='\h:\w'
 PS2='> '
 
+# If we aren't run inside systemd user session (connected by ssh for example), include its environment configuration
+if [ -z "$MANAGERPID" -a -d ~/.config/environment.d ]; then
+    nullglob="$(shopt -p nullglob)"
+    shopt -s nullglob
+    files=~/.config/environment.d/*.conf
+    $nullglob
+
+    for file in $files; do
+        set -o allexport
+        . $file
+        set +o allexport
+    done
+
+    unset nullglob files file
+fi
+
 # Include custom settings
 if [ -d ~/.bashrc.d ]; then
     enable_profiling=0
@@ -24,8 +40,10 @@ if [ -d ~/.bashrc.d ]; then
 
     nullglob="$(shopt -p nullglob)"
     shopt -s nullglob
+    files=~/.bashrc.d/*.sh
+    $nullglob
 
-    for file in ~/.bashrc.d/*.sh; do
+    for file in $files; do
         [ "$enable_profiling" -eq 1 ] && start_time="$($date +%s%N)"
         . $file
         if [ "$enable_profiling" -eq 1 ]; then
@@ -35,6 +53,5 @@ if [ -d ~/.bashrc.d ]; then
         fi
     done
 
-    $nullglob
-    unset enable_profiling date nullglob file start_time end_time duration
+    unset enable_profiling date nullglob files file start_time end_time duration
 fi
