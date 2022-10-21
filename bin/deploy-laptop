@@ -141,7 +141,7 @@ uninstall-brew-packages() {
         brew list > /dev/null && brew list | xargs -r brew uninstall --force
         hash -r # Clear bash command path cache
 
-        brew tap > /dev/null && brew tap | egrep -v '^homebrew/core$' | xargs -r brew untap
+        brew tap > /dev/null && brew tap | grep -vE '^homebrew/core$' | xargs -r brew untap
     fi
 
     for symlink in getopt go python; do
@@ -271,7 +271,7 @@ uninstall-python-packages() {
                 package_info="$($pip show $flags "$package")"
 
                 # Filter out system packages
-                egrep -q "^Location: $site_prefix" <<< "$package_info" || continue
+                grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
 
                 $pip uninstall $flags -y "$package"
             done
@@ -304,7 +304,7 @@ check-directory() {
     [ -d "$dir" ] || return 0
 
     contents="$(ls -1A "$dir")"
-    [ -z "$white_list" ] || contents="$(egrep -v "$white_list" <<< "$contents")"
+    [ -z "$white_list" ] || contents="$(grep -vE "$white_list" <<< "$contents")"
 
     contents="$(
         while read subdir; do

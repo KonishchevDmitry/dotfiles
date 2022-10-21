@@ -14,6 +14,6 @@ HISTIGNORE="cd"
 HISTCONTROL="ignoredups:ignorespace"
 
 # Write history every time bash shows the prompt
-if ! echo -nE "$PROMPT_COMMAND" | egrep -q '\bhistory -a'; then
+if ! echo -nE "$PROMPT_COMMAND" | grep -qE '\bhistory -a'; then
     PROMPT_COMMAND="history -a;$PROMPT_COMMAND"
 fi
