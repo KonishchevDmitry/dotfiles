@@ -110,9 +110,9 @@ endif
 "    colorscheme elflord
 "endif
 " Set different color scheme for vimdiff
-"if &diff
-"    colorscheme delek
-"endif
+if &diff
+    colorscheme desert
+endif
 
 
 " Source all configuration files
