@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#
+# Git merge tool
+#
+
+set -eu
+
+if [[ $# -ne 4 ]]; then
+    echo "Usage: $0: BASE LOCAL REMOTE RESULT" >&2
+    exit 1
+fi
+
+base="$1"
+our="$2"
+remote="$3"
+result="$4"
+
+if [[ "$(uname)" == Darwin ]]; then
+    code --wait --merge "$our" "$remote" "$base" "$result"
+else
+    vimdiff "$our" "$result" "$remote"
+fi

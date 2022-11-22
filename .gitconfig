@@ -27,14 +27,13 @@
     default = current
 
 [merge]
-	#tool = meld
-	tool = vimdiff
+    tool = my
 [mergetool]
+    prompt = false
     keepBackup = false
     keepTemporaries = false
-	prompt = false
-[mergetool "meld"]
-    cmd = "meld $LOCAL $MERGED $REMOTE"
+[mergetool "my"]
+    cmd = '~/.local/libexec/git-merge-tool "$BASE" "$LOCAL" "$REMOTE" "$MERGED"'
 
 [url "git@bb.yandex-team.ru:"]
     insteadOf = https://bb.yandex-team.ru/scm
