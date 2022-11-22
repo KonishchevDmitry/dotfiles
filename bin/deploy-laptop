@@ -84,14 +84,14 @@ install-brew-packages() {(
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger rsync sslscan \
-        the_silver_searcher telnet terminal-notifier terraform tmux tree vim wakeonlan watch
+    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger ripgrep rsync sslscan \
+        telnet terminal-notifier terraform tmux tree vim wakeonlan watch
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    go_version=1.18
+    go_version=1.19
     brew install "go@$go_version" && brew link "go@$go_version"
     brew install python
 
