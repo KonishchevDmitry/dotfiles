@@ -33,7 +33,7 @@
     keepBackup = false
     keepTemporaries = false
 [mergetool "my"]
-    cmd = '~/.local/libexec/git-merge-tool "$BASE" "$LOCAL" "$REMOTE" "$MERGED"'
+    cmd = "~/.local/libexec/git-merge-tool \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\""
 
 [url "git@bb.yandex-team.ru:"]
     insteadOf = https://bb.yandex-team.ru/scm
