@@ -100,9 +100,14 @@ if has('macunix')
 endif
 
 
-" Assume that we always support at least 256 colors
-if !has('gui_running') && &t_Co < 256
-    set t_Co=256
+if !has('gui_running')
+    " Vim fails to detect terminal color scheme when running under tmux, so set it manually
+    set background=dark
+
+    " Assume that we always support at least 256 colors
+    if &t_Co < 256
+        set t_Co=256
+    endif
 endif
 
 "colorscheme torte
@@ -110,9 +115,9 @@ endif
 "    colorscheme elflord
 "endif
 " Set different color scheme for vimdiff
-if &diff
-    colorscheme desert
-endif
+"if &diff
+"    colorscheme desert
+"endif
 
 
 " Source all configuration files
