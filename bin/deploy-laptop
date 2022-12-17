@@ -84,7 +84,7 @@ install-brew-packages() {(
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible git gnupg htop httpie jq mosh ncdu pstree ranger ripgrep rsync sslscan \
+    brew install ansible git gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync sslscan \
         telnet terminal-notifier terraform tmux tree vim wakeonlan watch
 
     brew install mutt
