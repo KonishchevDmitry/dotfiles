@@ -24,18 +24,6 @@ fi
 # Python: don't write .py[co] files on import
 export PYTHONDONTWRITEBYTECODE=yes
 
-# Set up virtualenvwrapper
-export PROJECT_HOME=~/src
-
-# Set up Python environment
-if which pyenv >/dev/null; then
-    eval "$(pyenv init -)"
-    pyenv virtualenvwrapper_lazy
-elif ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper_lazy.sh 2>/dev/null); then
-    . "$virtualenvwrapper"
-fi
-unset virtualenvwrapper
-
 # Set up Rust environment
 [ -d ~/.cargo/bin ] && export PATH=~/.cargo/bin":$PATH"
 export RUST_BACKTRACE=1
