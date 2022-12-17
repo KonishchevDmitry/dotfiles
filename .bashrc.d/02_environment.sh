@@ -10,6 +10,11 @@ if [ "$(uname)" = Darwin ]; then
 
     export CFLAGS+=-I/usr/local/opt/openssl/include
     export LDFLAGS+=-L/usr/local/opt/openssl/lib
+
+    # Fix SHELL variable which is set by the OS
+    if [[ -n "$SHELL" && -n "$BASH" && "$SHELL" != "$BASH" ]]; then
+        SHELL="$BASH"
+    fi
 elif [ -f /etc/debian_version ]; then
     # Debian package building
     export DEBEMAIL='konishchev@gmail.com'
