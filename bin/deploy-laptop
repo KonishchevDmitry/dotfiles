@@ -12,7 +12,7 @@ install-all() {
     if is-macos; then
         if ! which -s brew; then
             log "Installing Homebrew..."
-            ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+            bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             brew doctor
         fi
         update-brew
