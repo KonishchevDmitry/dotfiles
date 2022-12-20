@@ -13,7 +13,7 @@ install-all() {
         which -s brew || install-brew
         update-brew
         install-brew-packages
-        configure-environment
+        post-install-brew-packages
     fi
 
     install-rust-packages
@@ -48,9 +48,18 @@ upgrade-all() {
 
     (
         set -x
-        brew update && brew upgrade
-        rustup update && cargo install-update --all
+        brew update
+        brew upgrade
     )
+
+    post-install-brew-packages
+
+    (
+        set -x
+        rustup update
+        cargo install-update --all
+    )
+
     cleanup-caches
 
     log "Upgrade finished successfully."
@@ -132,8 +141,8 @@ install-brew-packages() {(
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible git gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync sslscan \
-        telnet terminal-notifier terraform tmux tree vim wakeonlan watch
+    brew install ansible git gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync \
+        sslscan syncthing telnet terminal-notifier terraform tmux tree vim wakeonlan watch
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
@@ -150,6 +159,14 @@ install-brew-packages() {(
     brew install --cask macfuse
     brew tap yandex/arc "$arc_tap" && brew install arc-launcher
 )}
+
+post-install-brew-packages() {
+    (
+        set -x
+        brew services restart syncthing
+    )
+    configure-environment
+}
 
 uninstall-brew-packages() {
     [ -e "$prefix/bin/brew" ] || return 0
