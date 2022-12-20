@@ -8,8 +8,8 @@ if [ "$(uname)" = Darwin ]; then
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
 
-    export CFLAGS+=-I/usr/local/opt/openssl/include
-    export LDFLAGS+=-L/usr/local/opt/openssl/lib
+    export CFLAGS+=-I/opt/homebrew/opt/openssl/include
+    export LDFLAGS+=-L/opt/homebrew/opt/openssl/lib
 
     # Fix SHELL variable which is set by the OS
     if [[ -n "$SHELL" && -n "$BASH" && "$SHELL" != "$BASH" ]]; then
