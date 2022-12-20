@@ -16,6 +16,7 @@ install-all() {
         post-install-brew-packages
     fi
 
+    install-go-packages
     install-rust-packages
     install-python-packages
 
@@ -53,6 +54,7 @@ upgrade-all() {
     )
 
     post-install-brew-packages
+    install-go-packages
 
     (
         set -x
@@ -179,6 +181,11 @@ uninstall-brew-packages() {
 
     brew tap > /dev/null && brew tap | grep -vE '^homebrew/core$' | xargs -r brew untap
 }
+
+install-go-packages() {(
+    set -x
+    go install golang.org/x/tools/cmd/goimports@latest
+)}
 
 install-rust-packages() {
     log "Installing Rust packages..."
