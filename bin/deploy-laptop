@@ -10,7 +10,7 @@ shopt -s extglob
 
 install-all() {
     if is-macos; then
-        which -s brew || install-brew
+        which brew > /dev/null || install-brew
         update-brew
         install-brew-packages
         post-install-brew-packages
@@ -20,7 +20,9 @@ install-all() {
     install-rust-packages
     install-python-packages
 
-    cleanup-caches
+    if [ -n "$full_installation" ]; then
+        cleanup-caches
+    fi
 
     log "Installation finished successfully."
 }
@@ -95,7 +97,7 @@ uninstall-brew() {
     log "Uninstalling Homebrew..."
 
     if [ -e "$prefix/bin/brew" ]; then
-        /bin/bash <(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh) --dry-run    
+        /bin/bash <(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh) --dry-run
         question-user "process"
         /bin/bash <(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)
     fi
@@ -190,19 +192,26 @@ install-go-packages() {(
 install-rust-packages() {
     log "Installing Rust packages..."
 
-    if ! which -s rustup; then
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    if [ ! -e ~/.cargo/bin/rustup ]; then
+        sh <(curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs) -y --no-modify-path
     fi
     source ~/.cargo/env
 
     (
         set -x
-        cargo install cargo-cache cargo-edit cargo-release cargo-update investments vsb
+        cargo install cargo-update vsb
     )
+
+    if [ -n "$full_installation" ]; then
+        (
+            set -x
+            cargo install cargo-cache cargo-edit cargo-release investments
+        )
+    fi
 }
 
 uninstall-rust-packages() {
-    which -s cargo || return 0
+    which cargo > /dev/null || return 0
 
     log "Uninstalling Rust packages..."
     (
@@ -222,7 +231,9 @@ install-python-packages() {
     fi
 
     pip3 $install --disable-pip-version-check --upgrade pip
-    pip3 $install -U ipython pyyaml TxtStyle
+    if [ -n "$full_installation" ]; then
+        pip3 $install -U ipython pyyaml TxtStyle
+    fi
 
     shopt -s nullglob
         for script in ~/bin/* ~/.local/bin/*; do
@@ -238,45 +249,44 @@ install-python-packages() {
 uninstall-python-packages() {
     local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
 
+    version=3
+    pip=pip$version
+
     if ! is-macos; then
         list="$list --user"
     fi
 
     shopt -s nullglob
-        for version in 2 3 ; do
-            pip=pip$version
+        if is-macos; then
+            which "$pip" > /dev/null || continue
+            site_prefix="$prefix"
+        else
+            pip=/usr/bin/$pip
+            site_prefix="$(python$version -m site --user-site)"
+        fi
 
+        log "Uninstalling Python$version packages..."
+        packages="$($pip $list $flags --format=freeze)"
+
+        for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
             if is-macos; then
-                which -s "$pip" || continue
-                site_prefix="$prefix"
-            else
-                pip=/usr/bin/$pip
-                site_prefix="$(python$version -m site --user-site)"
-            fi
-
-            log "Uninstalling Python$version packages..."
-            packages="$($pip $list $flags --format=freeze)"
-
-            for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
-                if is-macos; then
-                    # Don't uninstall pip and setuptools to not break pip
-                    if [[ "$package" == pip || "$package" == setuptools ]]; then
-                        continue
-                    fi
-
-                    # Skip distutils installed packages that can't be uninstalled
-                    if [[ "$package" == gpg || "$package" == PyGObject ]]; then
-                        continue
-                    fi
+                # Don't uninstall pip and setuptools to not break pip
+                if [[ "$package" == pip || "$package" == setuptools ]]; then
+                    continue
                 fi
 
-                package_info="$($pip show $flags "$package")"
+                # Skip distutils installed packages that can't be uninstalled
+                if [[ "$package" == gpg || "$package" == PyGObject ]]; then
+                    continue
+                fi
+            fi
 
-                # Filter out system packages
-                grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
+            package_info="$($pip show $flags "$package")"
 
-                $pip uninstall $flags -y "$package"
-            done
+            # Filter out system packages
+            grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
+
+            $pip uninstall $flags -y "$package"
         done
     shopt -u nullglob
 }
@@ -286,16 +296,16 @@ cleanup-caches() {
     (
         set -x
 
-        if which -s brew; then
+        if which brew > /dev/null; then
             brew cleanup
         fi
 
-        if which -s cargo-cache; then
+        if which cargo-cache > /dev/null; then
             cargo cache --keep-duplicate-crates 0
             cargo cache --autoclean-expensive
         fi
 
-        if which -s go; then
+        if which go > /dev/null; then
             go clean -cache -modcache -testcache -fuzzcache
         fi
     )
@@ -342,7 +352,7 @@ is-macos() {
 }
 
 show-usage() {
-    die "Usage: $0 {install|upgrade|uninstall}"
+    die "Usage: $0 {install|install-minimal|upgrade|uninstall}"
 }
 
 if [ $# -ne 1 ]; then
@@ -353,6 +363,8 @@ if [ "$(whoami)" = root ]; then
     die "The script must be run from user."
 fi
 
+full_installation=yes
+
 if is-macos; then
     prefix=/opt/homebrew
     arc_tap=https://arc-vcs.yandex-team.ru/homebrew-tap
@@ -360,8 +372,24 @@ if is-macos; then
 fi
 
 case $1 in
-    "install") question-user "install all required packages" && install-all ;;
-    "upgrade") question-user "upgrade all installed packages" && upgrade-all ;;
-    "uninstall") question-user "uninstall all packages" && uninstall-all ;;
-    *) show-usage ;;
+    "install")
+        question-user "install all packages" && install-all
+        ;;
+
+    "install-minimal")
+        full_installation=""
+        question-user "install minimal packages" && install-all
+        ;;
+
+    "upgrade")
+        question-user "upgrade all installed packages" && upgrade-all
+        ;;
+
+    "uninstall")
+        question-user "uninstall all packages" && uninstall-all
+        ;;
+
+    *)
+        show-usage
+        ;;
 esac
