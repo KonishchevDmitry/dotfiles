@@ -35,5 +35,5 @@
 [mergetool "my"]
     cmd = "~/.local/libexec/git-merge-tool \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\""
 
-[url "git@bb.yandex-team.ru:"]
-    insteadOf = https://bb.yandex-team.ru/scm
+[url "git@bb.yandexcloud.net:"]
+    insteadOf = https://bb.yandexcloud.net/scm
