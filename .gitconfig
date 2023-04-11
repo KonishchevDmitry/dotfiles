@@ -37,6 +37,4 @@
 
 [url "git@bb.yandexcloud.net:"]
     insteadOf = https://bb.yandex-team.ru/scm
-
-[url "git@bb.yandexcloud.net:"]
     insteadOf = https://bb.yandexcloud.net/scm
