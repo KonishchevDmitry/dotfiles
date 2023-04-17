@@ -153,7 +153,7 @@ install-brew-packages() {(
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
     go_version=1.19
-    brew install "go@$go_version" && brew link "go@$go_version"
+    brew install "go@$go_version" && brew link --overwrite "go@$go_version"
     brew install python
 
     # Development libraries
@@ -249,46 +249,47 @@ install-python-packages() {
 uninstall-python-packages() {
     local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
 
-    version=3
-    pip=pip$version
+    for version in $(cd "$prefix/bin" && ls -1 | grep -E '^python[0-9.]+$' | grep -oE '[0-9.]+$'); do
+        pip=pip$version
 
-    if ! is-macos; then
-        list="$list --user"
-    fi
-
-    shopt -s nullglob
-        if is-macos; then
-            which "$pip" > /dev/null || continue
-            site_prefix="$prefix"
-        else
-            pip=/usr/bin/$pip
-            site_prefix="$(python$version -m site --user-site)"
+        if ! is-macos; then
+            list="$list --user"
         fi
 
-        log "Uninstalling Python$version packages..."
-        packages="$($pip $list $flags --format=freeze)"
-
-        for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
+        shopt -s nullglob
             if is-macos; then
-                # Don't uninstall pip and setuptools to not break pip
-                if [[ "$package" == pip || "$package" == setuptools ]]; then
-                    continue
-                fi
-
-                # Skip distutils installed packages that can't be uninstalled
-                if [[ "$package" == gpg || "$package" == PyGObject ]]; then
-                    continue
-                fi
+                which "$pip" > /dev/null || continue
+                site_prefix="$prefix"
+            else
+                pip=/usr/bin/$pip
+                site_prefix="$(python$version -m site --user-site)"
             fi
 
-            package_info="$($pip show $flags "$package")"
+            log "Uninstalling Python $version packages..."
+            packages="$($pip $list $flags --format=freeze)"
 
-            # Filter out system packages
-            grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
+            for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
+                if is-macos; then
+                    # Don't uninstall pip and setuptools to not break pip
+                    if [[ "$package" == pip || "$package" == setuptools ]]; then
+                        continue
+                    fi
 
-            $pip uninstall $flags -y "$package"
-        done
-    shopt -u nullglob
+                    # Skip distutils installed packages that can't be uninstalled
+                    if [[ "$package" == gpg || "$package" == PyGObject ]]; then
+                        continue
+                    fi
+                fi
+
+                package_info="$($pip show $flags "$package")"
+
+                # Filter out system packages
+                grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
+
+                $pip uninstall $flags -y "$package"
+            done
+        shopt -u nullglob
+    done
 }
 
 cleanup-caches() {
