@@ -152,7 +152,7 @@ install-brew-packages() {(
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    go_version=1.19
+    go_version=1.20
     brew install "go@$go_version" && brew link --overwrite "go@$go_version"
     brew install python
 
