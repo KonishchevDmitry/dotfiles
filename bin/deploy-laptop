@@ -236,7 +236,7 @@ install-python-packages() {
     fi
 
     shopt -s nullglob
-        for script in ~/bin/* ~/.local/bin/*; do
+        for script in ~/bin/* ~/.local/bin/* ~/job/bin/*; do
             script_type="$(file --mime-type --brief "$script")"
             [ "$script_type" = 'text/x-script.python' ] || continue
 
