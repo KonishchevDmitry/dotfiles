@@ -145,8 +145,8 @@ install-brew-packages() {(
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible git gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync \
-        sslscan syncthing telnet terminal-notifier terraform tmux tree vim wakeonlan watch
+    brew install ansible git gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync shadowsocks-rust \
+        socat sslscan syncthing telnet terminal-notifier terraform tmux tree vim wakeonlan watch
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
