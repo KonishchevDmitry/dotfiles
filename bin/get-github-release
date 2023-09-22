@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+#
+# Downloads binary releases from GitHub
+#
+
+die() {
+    echo "Error:" "$@" >&2
+    exit 1
+}
+
+show_help() {
+    cat <<EOF
+Usage: $script_name [options] REPOSITORY ARCHIVE_REGEX BINARY_WILDCARD DESTINATION
+
+optional arguments:
+  -h, --help  show this help message and exit
+EOF
+}
+
+parse_args() {
+    eval set -- "$@"
+
+    local pull=1
+
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            --)
+                shift
+                break
+                ;;
+            (*)
+                die "Unrecognized option: $1."
+                ;;
+        esac
+        shift
+    done
+
+    if [ $# -lt 3 ]; then
+        die "Got $# arguments when 3 is expected."
+    fi
+
+    repository="$1"; shift
+    archive_regex="$1"; shift
+    binary_wildcard="$1"; shift
+    destination="$(realpath "$1")"; shift
+}
+
+upgrade-binary() {
+    local release_info
+    local version
+    local archive_name
+    local decompress_arg
+
+    release_info="$(curl --silent --fail "https://api.github.com/repos/$repository/releases/latest")"
+    version="$(jq -r .name <<< "$release_info")"
+    archive_name="$(jq -r ".assets[].name | select(. | test(\"${archive_regex//\\/\\\\}\"))" <<< "$release_info")"
+    if [ -z "$version" -o -z "$archive_name" -o "$(wc -l <<< "$archive_name")" -ne 1 ]; then
+        echo "Unable to find the latest release." >&2
+        exit 1
+    fi
+
+    case "$archive_name" in
+        *.tar.gz)
+            decompress_arg="-z"
+            ;;
+        *.tar.xz)
+            decompress_arg="--xz"
+            ;;
+        *)
+            die "Unsupported archive type: $archive_name"
+            ;;
+    esac
+
+    local url
+    local destination_dir
+    local binary_name
+
+    url="https://github.com/$repository/releases/latest/download/$archive_name"
+    destination_dir="$(dirname "$destination")"
+    binary_name="$(basename "$destination")"
+
+    local version_spec="to $version"
+    [ -z "$current_version" ] || version_spec="($current_version -> $version)"
+    echo "Upgrading $binary_name $version_spec..."
+
+    curl --fail --location "$url" \
+        | tar -C "$destination_dir" -x "$decompress_arg" --wildcards "$binary_wildcard" --transform "s/.*/$binary_name.new/" \
+            --no-same-owner --no-same-permissions
+
+    mv "$destination.new" "$destination"
+}
+
+set -eu
+set -o pipefail
+
+script_name="$0"
+
+args="$(getopt -n "$0" -o hu:n -l help,user:,no-pull -- "$@")"
+parse_args "${args[@]}"
+
+current_version=""
+if [ -e "$destination" ]; then
+    current_version="$("$destination" --version 2>/dev/null | sed -r 's/^.* (.+?)$/\1/')"
+fi
+
+upgrade-binary
