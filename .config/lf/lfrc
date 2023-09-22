@@ -1,0 +1,9 @@
+set hidden
+set autoquit
+
+cmd open ${{
+    case "$(file --mime-type --dereference --brief "$f")" in
+        text/*) vim "$f";;
+        *) open "$f";;
+    esac
+}}

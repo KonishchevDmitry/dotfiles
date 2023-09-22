@@ -8,7 +8,7 @@ set -eu
 config_option_name="user.email"
 remote_url="$(git "$@" remote get-url origin)"
 
-if grep -q yandex.team.ru <<< "$remote_url"; then
+if grep -q yandexcloud.net <<< "$remote_url"; then
     email="konishchev@yandex-team.ru"
 else
     email="konishchev@gmail.com"

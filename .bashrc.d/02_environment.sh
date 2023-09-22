@@ -8,8 +8,13 @@ if [ "$(uname)" = Darwin ]; then
     export LANG=en_US.UTF-8
     export LC_ALL=en_US.UTF-8
 
-    export CFLAGS+=-I/usr/local/opt/openssl/include
-    export LDFLAGS+=-L/usr/local/opt/openssl/lib
+    export CFLAGS+=-I/opt/homebrew/opt/openssl/include
+    export LDFLAGS+=-L/opt/homebrew/opt/openssl/lib
+
+    # Fix SHELL variable which is set by the OS
+    if [[ -n "$SHELL" && -n "$BASH" && "$SHELL" != "$BASH" ]]; then
+        SHELL="$BASH"
+    fi
 elif [ -f /etc/debian_version ]; then
     # Debian package building
     export DEBEMAIL='konishchev@gmail.com'
@@ -18,18 +23,6 @@ fi
 
 # Python: don't write .py[co] files on import
 export PYTHONDONTWRITEBYTECODE=yes
-
-# Set up virtualenvwrapper
-export PROJECT_HOME=~/src
-
-# Set up Python environment
-if which pyenv >/dev/null; then
-    eval "$(pyenv init -)"
-    pyenv virtualenvwrapper_lazy
-elif ! type -t mkvirtualenv > /dev/null && virtualenvwrapper=$(which virtualenvwrapper_lazy.sh 2>/dev/null); then
-    . "$virtualenvwrapper"
-fi
-unset virtualenvwrapper
 
 # Set up Rust environment
 [ -d ~/.cargo/bin ] && export PATH=~/.cargo/bin":$PATH"
