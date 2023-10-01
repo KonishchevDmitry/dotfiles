@@ -126,15 +126,15 @@ restart-services() {
     [ "${#services[@]}" -ne 0 ] || return 0
     [ "$(id -u)" -eq 0 ] || systemctl_args+=("--user")
 
-    for action in restart status; do
-        for service in "${services[@]}"; do
-            echo "Restarting $service..."
-            systemctl "${systemctl_args[@]}" "$action" "$service"
-        done
+    for service in "${services[@]}"; do
+        echo "Restarting $service..."
+        systemctl "${systemctl_args[@]}" restart "$service"
+    done
 
-        if [ "$action" = restart ]; then
-            sleep 1
-        fi
+    sleep 1
+
+    for service in "${services[@]}"; do
+        systemctl "${systemctl_args[@]}" status "$service"
     done
 }
 
