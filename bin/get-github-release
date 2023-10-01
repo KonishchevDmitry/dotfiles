@@ -13,7 +13,10 @@ show_help() {
 Usage: $script_name [options] REPOSITORY ARCHIVE_REGEX BINARY_WILDCARD DESTINATION
 
 optional arguments:
-  -h, --help  show this help message and exit
+  --force          force update
+  --changelog URL  changelog URL
+  --service NAME   systemd service to restart
+  -h, --help       show this help message and exit
 EOF
 }
 
@@ -24,6 +27,17 @@ parse_args() {
 
     while [ $# -gt 0 ]; do
         case "$1" in
+            -f|--force)
+                force=1
+                ;;
+            --changelog)
+                shift
+                changelog_url="$1"
+                ;;
+            -s|--service)
+                shift
+                services+=("$1")
+                ;;
             -h|--help)
                 show_help
                 exit 0
@@ -47,6 +61,8 @@ parse_args() {
     archive_regex="$1"; shift
     binary_wildcard="$1"; shift
     destination="$(realpath "$1")"; shift
+
+    [ -n "$changelog_url" ] || changelog_url="https://github.com/$repository/releases"
 }
 
 upgrade-binary() {
@@ -54,13 +70,24 @@ upgrade-binary() {
     local version
     local archive_name
     local decompress_arg
+    local destination_dir
+    local binary_name
 
     release_info="$(curl --silent --fail "https://api.github.com/repos/$repository/releases/latest")"
+
     version="$(jq -r .name <<< "$release_info")"
+    version="${version#v}"
     archive_name="$(jq -r ".assets[].name | select(. | test(\"${archive_regex//\\/\\\\}\"))" <<< "$release_info")"
+
+    destination_dir="$(dirname "$destination")"
+    binary_name="$(basename "$destination")"
+
     if [ -z "$version" -o -z "$archive_name" -o "$(wc -l <<< "$archive_name")" -ne 1 ]; then
         echo "Unable to find the latest release." >&2
         exit 1
+    elif [ "$version" = "$current_version" -a "$force" -ne 1 ]; then
+        echo "$binary_name is already up-to-date."
+        return 0
     fi
 
     case "$archive_name" in
@@ -75,36 +102,56 @@ upgrade-binary() {
             ;;
     esac
 
-    local url
-    local destination_dir
-    local binary_name
+    local url="https://github.com/$repository/releases/latest/download/$archive_name"
 
-    url="https://github.com/$repository/releases/latest/download/$archive_name"
-    destination_dir="$(dirname "$destination")"
-    binary_name="$(basename "$destination")"
-
-    local version_spec="to $version"
-    [ -z "$current_version" ] || version_spec="($current_version -> $version)"
-    echo "Upgrading $binary_name $version_spec..."
+    if [ -z "$current_version" ]; then
+        echo "Installing $binary_name..."
+    else
+        echo "Upgrading $binary_name $current_version -> $version ($changelog_url)..."
+    fi
 
     curl --fail --location "$url" \
         | tar -C "$destination_dir" -x "$decompress_arg" --wildcards "$binary_wildcard" --transform "s/.*/$binary_name.new/" \
             --no-same-owner --no-same-permissions
 
     mv "$destination.new" "$destination"
+    restart-services
+}
+
+restart-services() {
+    local action
+    local service
+    local systemctl_args=()
+
+    [ "${#services[@]}" -ne 0 ] || return 0
+    [ "$(id -u)" -eq 0 ] || systemctl_args+=("--user")
+
+    for action in restart status; do
+        for service in "${services[@]}"; do
+            echo "Restarting $service..."
+            systemctl "${systemctl_args[@]}" "$action" "$service"
+        done
+
+        if [ "$action" = restart ]; then
+            sleep 1
+        fi
+    done
 }
 
 set -eu
 set -o pipefail
 
 script_name="$0"
+changelog_url=""
+services=()
+force=0
 
-args="$(getopt -n "$0" -o hu:n -l help,user:,no-pull -- "$@")"
+args="$(getopt -n "$0" -o fs:h -l force,changelog:,service:,help -- "$@")"
 parse_args "${args[@]}"
 
 current_version=""
 if [ -e "$destination" ]; then
-    current_version="$("$destination" --version 2>/dev/null | sed -r 's/^.* (.+?)$/\1/')"
+    current_version="$({ "$destination" --version 2>/dev/null || :; } | sed -r 's/^.* (.+?)$/\1/')"
 fi
 
 upgrade-binary
