@@ -77,6 +77,8 @@ upgrade-binary() {
 
     version="$(jq -r .name <<< "$release_info")"
     version="${version#v}"
+    version="$(cut -d ' ' -f 1 <<< "$version")"
+
     archive_name="$(jq -r ".assets[].name | select(. | test(\"${archive_regex//\\/\\\\}\"))" <<< "$release_info")"
 
     destination_dir="$(dirname "$destination")"
@@ -126,15 +128,15 @@ restart-services() {
     [ "${#services[@]}" -ne 0 ] || return 0
     [ "$(id -u)" -eq 0 ] || systemctl_args+=("--user")
 
-    for action in restart status; do
-        for service in "${services[@]}"; do
-            echo "Restarting $service..."
-            systemctl "${systemctl_args[@]}" "$action" "$service"
-        done
+    for service in "${services[@]}"; do
+        echo "Restarting $service..."
+        systemctl "${systemctl_args[@]}" restart "$service"
+    done
 
-        if [ "$action" = restart ]; then
-            sleep 1
-        fi
+    sleep 1
+
+    for service in "${services[@]}"; do
+        systemctl "${systemctl_args[@]}" status "$service"
     done
 }
 
@@ -151,7 +153,12 @@ parse_args "${args[@]}"
 
 current_version=""
 if [ -e "$destination" ]; then
-    current_version="$({ "$destination" --version 2>/dev/null || :; } | sed -r 's/^.* (.+?)$/\1/')"
+    current_version="$(
+        { "$destination" --version 2>/dev/null || :;} | head -n1 \
+        | sed -r 's/^(.* )?([Vv]ersion [^ ]+)( .*)$/\2/' \
+        | sed -r 's/^.*[- ]v([0-9]+\.[0-9]+(\.[0-9]+)?)[- ].*$/\1/' \
+        | sed -r 's/^.* (.+?)$/\1/'
+    )"
 fi
 
 upgrade-binary
