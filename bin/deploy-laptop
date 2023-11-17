@@ -238,7 +238,7 @@ install-python-packages() {
     shopt -s nullglob
         for script in ~/bin/* ~/.local/bin/* ~/job/bin/*; do
             script_type="$(file --mime-type --brief "$script")"
-            [ "$script_type" = 'text/x-script.python' ] || continue
+            [ "$script_type" = 'text/x-python' -o "$script_type" = 'text/x-script.python' ] || continue
 
             requirements="$(get-script-requirements "$script")"
             [ -z "$requirements" ] || pip3 $install -U $requirements
