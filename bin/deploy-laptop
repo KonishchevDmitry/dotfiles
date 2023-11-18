@@ -16,7 +16,6 @@ install-all() {
         post-install-brew-packages
     fi
 
-    install-go-packages
     install-rust-packages
     install-python-packages
 
@@ -56,7 +55,6 @@ upgrade-all() {
     )
 
     post-install-brew-packages
-    install-go-packages
 
     (
         set -x
@@ -152,7 +150,7 @@ install-brew-packages() {(
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    go_version=1.20
+    go_version=1.21
     brew install "go@$go_version" && brew link --overwrite "go@$go_version"
     brew install python
 
@@ -183,11 +181,6 @@ uninstall-brew-packages() {
 
     brew tap > /dev/null && brew tap | grep -vE '^homebrew/core$' | xargs -r brew untap
 }
-
-install-go-packages() {(
-    set -x
-    go install golang.org/x/tools/cmd/goimports@latest
-)}
 
 install-rust-packages() {
     log "Installing Rust packages..."
