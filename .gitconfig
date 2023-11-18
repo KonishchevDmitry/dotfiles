@@ -1,14 +1,16 @@
 [core]
     editor = vim
-    excludesfile = ~/.gitignore.global
+
 [user]
     name = Dmitry Konishchev
     useConfigOnly = true
+
 [color]
     diff = auto
     status = auto
     branch = auto
     interactive = auto
+
 [alias]
     br = branch
     ci = commit -a
@@ -23,15 +25,21 @@
     st = status
     stt = status --untracked=no
     su = submodule update --init --recursive
+
+[pull]
+    ff = only
+
 [push]
     default = current
 
 [merge]
     tool = my
+
 [mergetool]
     prompt = false
     keepBackup = false
     keepTemporaries = false
+
 [mergetool "my"]
     cmd = "~/.local/libexec/git-merge-tool \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\""
 
