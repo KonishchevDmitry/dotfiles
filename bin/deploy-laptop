@@ -136,7 +136,7 @@ install-brew-packages() {(
     # Homebrew's bash in contrast to system's bash supports completion
     #
     # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal emulator
-    brew install bash bash-completion pip-completion vagrant-completion
+    brew install bash bash-completion pip-completion
 
     brew install gnu-getopt
     [ -h "$prefix/bin/getopt" ] || ln -s "$prefix/opt/gnu-getopt/bin/getopt" "$prefix/bin/getopt"
@@ -144,7 +144,7 @@ install-brew-packages() {(
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
     brew install ansible git gmailctl gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync shadowsocks-rust \
-        socat sslscan syncthing telnet terminal-notifier terraform tmux tree vim wakeonlan watch yq
+        socat sslscan syncthing telnet terminal-notifier terraform tmux tree vim watch yq
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
@@ -279,7 +279,8 @@ uninstall-python-packages() {
                 # Filter out system packages
                 grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
 
-                $pip uninstall $flags -y "$package"
+                log "Uninstalling $package..."
+                $pip uninstall $flags -y "$package" ||:
             done
         shopt -u nullglob
     done
