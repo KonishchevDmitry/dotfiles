@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# Deletes temporary Syncthing files
+#
+
+set -eu
+
+find -type f -name '.syncthing.*.tmp' -print -delete
