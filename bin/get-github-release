@@ -75,7 +75,7 @@ upgrade-binary() {
 
     release_info="$(curl --silent --fail "https://api.github.com/repos/$repository/releases/latest")"
 
-    version="$(jq -r .name <<< "$release_info")"
+    version="$(jq -r .tag_name <<< "$release_info")"
     version="${version#v}"
     version="$(cut -d ' ' -f 1 <<< "$version")"
 
@@ -95,6 +95,9 @@ upgrade-binary() {
     case "$archive_name" in
         *.tar.gz)
             decompress_arg="-z"
+            ;;
+        *.tar.bz2)
+            decompress_arg="-j"
             ;;
         *.tar.xz)
             decompress_arg="--xz"
