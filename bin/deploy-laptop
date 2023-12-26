@@ -297,7 +297,9 @@ cleanup-caches() {
 
         if which cargo-cache > /dev/null; then
             cargo cache --keep-duplicate-crates 0
-            cargo cache --autoclean-expensive
+            if [ -n "$expensive_cleanup" ]; then
+                cargo cache --autoclean-expensive
+            fi
         fi
 
         if which go > /dev/null; then
@@ -359,6 +361,7 @@ if [ "$(whoami)" = root ]; then
 fi
 
 full_installation=yes
+expensive_cleanup=yes
 
 if is-macos; then
     prefix=/opt/homebrew
@@ -381,6 +384,7 @@ case $1 in
         ;;
 
     "uninstall")
+        expensive_cleanup=""
         question-user "uninstall all packages" && uninstall-all
         ;;
 
