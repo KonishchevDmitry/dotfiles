@@ -217,11 +217,7 @@ install-python-packages() {
     log "Installing Python packages..."
 
     local script script_type requirements
-    local install=install
-
-    if ! is-macos; then
-        install="$install --user"
-    fi
+    local install="install --user --break-system-packages"
 
     pip3 $install --disable-pip-version-check --upgrade pip
     if [ -n "$full_installation" ]; then
@@ -240,26 +236,17 @@ install-python-packages() {
 }
 
 uninstall-python-packages() {
-    local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
+    local version pip packages package package_info flags=--disable-pip-version-check site_prefix
 
     for version in $(cd "$prefix/bin" && ls -1 | grep -E '^python[0-9.]+$' | grep -oE '[0-9.]+$'); do
         pip=pip$version
 
-        if ! is-macos; then
-            list="$list --user"
-        fi
-
         shopt -s nullglob
-            if is-macos; then
-                which "$pip" > /dev/null || continue
-                site_prefix="$prefix"
-            else
-                pip=/usr/bin/$pip
-                site_prefix="$(python$version -m site --user-site)"
-            fi
+            which "$pip" > /dev/null || continue
+            site_prefix="$(python$version -m site --user-site)"
 
             log "Uninstalling Python $version packages..."
-            packages="$($pip $list $flags --format=freeze)"
+            packages="$($pip list $flags --user --format=freeze)"
 
             for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
                 if is-macos; then
@@ -280,10 +267,13 @@ uninstall-python-packages() {
                 grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
 
                 log "Uninstalling $package..."
-                $pip uninstall $flags -y "$package" ||:
+                $pip uninstall $flags --break-system-packages -y "$package" ||:
             done
         shopt -u nullglob
     done
+
+    log "Deleting ~/Library/Python..."
+    rm -rf ~/Library/Python
 }
 
 cleanup-caches() {
