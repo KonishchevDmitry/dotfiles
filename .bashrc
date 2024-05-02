@@ -17,13 +17,17 @@ if [ -z "$MANAGERPID" -a -d ~/.config/environment.d ]; then
     files=~/.config/environment.d/*.conf
     $nullglob
 
+    ssh_auth_sock="$SSH_AUTH_SOCK"
+
     for file in $files; do
         set -o allexport
         . $file
         set +o allexport
     done
 
-    unset nullglob files file
+    [ -z "$ssh_auth_sock" ] || SSH_AUTH_SOCK="$ssh_auth_sock"
+
+    unset nullglob files file ssh_auth_sock
 fi
 
 # Include custom settings
