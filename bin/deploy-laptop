@@ -60,6 +60,7 @@ upgrade-all() {
         set -x
         rustup update
         cargo install-update --all
+        pipx reinstall-all
     )
 
     cleanup-caches
@@ -152,7 +153,7 @@ install-brew-packages() {(
 
     go_version=1.21
     brew install "go@$go_version" && brew link --overwrite "go@$go_version"
-    brew install python
+    brew install python pipx
 
     # Development libraries
     brew install libxml2 openssl
@@ -221,7 +222,11 @@ install-python-packages() {
 
     pip3 $install --disable-pip-version-check --upgrade pip
     if [ -n "$full_installation" ]; then
-        pip3 $install -U ipython pyyaml TxtStyle
+        pipx install ipython TxtStyle
+        pipx inject ipython pyyaml
+
+        # Consider switching to https://github.com/yt-dlp/yt-dlp
+        pipx install https://github.com/ytdl-org/youtube-dl/archive/master.zip
     fi
 
     shopt -s nullglob
