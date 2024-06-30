@@ -25,13 +25,12 @@ fi
 export PYTHONDONTWRITEBYTECODE=yes
 
 # Set up Rust environment
-[ -d ~/.cargo/bin ] && export PATH=~/.cargo/bin":$PATH"
+[ -d ~/.cargo/bin ] && [[ ":$PATH:" != *":$HOME/.cargo/bin:"* ]] && PATH="$HOME/.cargo/bin:$PATH"
 export RUST_BACKTRACE=1
 
 # Set up Go workspace
 export GOPATH=~/go
-[ -d /usr/local/go ] && PATH="/usr/local/go/bin:$PATH"
-[ -d "$GOPATH" ] && PATH="$GOPATH/bin:$PATH"
+[ -d "$GOPATH" ] && [[ ":$PATH:" != *":$GOPATH/bin:"* ]] && PATH="$GOPATH/bin:$PATH"
 
 # On Linux it's libvirt by default
 export VAGRANT_DEFAULT_PROVIDER=virtualbox
