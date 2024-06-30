@@ -60,6 +60,7 @@ upgrade-all() {
         set -x
         rustup update
         cargo install-update --all
+        pipx reinstall-all
     )
 
     cleanup-caches
@@ -143,7 +144,7 @@ install-brew-packages() {(
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible git gmailctl gnupg htop httpie jq lf mosh ncdu pstree ripgrep rsync shadowsocks-rust \
+    brew install ansible git gmailctl gnupg htop httpie hugo jq lf mosh ncdu pstree ripgrep rsync shadowsocks-rust \
         socat sslscan syncthing telnet terminal-notifier terraform tmux tree vim watch yq
 
     brew install mutt
@@ -152,7 +153,7 @@ install-brew-packages() {(
 
     go_version=1.21
     brew install "go@$go_version" && brew link --overwrite "go@$go_version"
-    brew install python
+    brew install python pipx
 
     # Development libraries
     brew install libxml2 openssl
@@ -217,15 +218,15 @@ install-python-packages() {
     log "Installing Python packages..."
 
     local script script_type requirements
-    local install=install
-
-    if ! is-macos; then
-        install="$install --user"
-    fi
+    local install="install --user --break-system-packages"
 
     pip3 $install --disable-pip-version-check --upgrade pip
     if [ -n "$full_installation" ]; then
-        pip3 $install -U ipython pyyaml TxtStyle
+        pipx install ipython TxtStyle
+        pipx inject ipython pyyaml
+
+        # Consider switching to https://github.com/yt-dlp/yt-dlp
+        pipx install https://github.com/ytdl-org/youtube-dl/archive/master.zip
     fi
 
     shopt -s nullglob
@@ -240,26 +241,17 @@ install-python-packages() {
 }
 
 uninstall-python-packages() {
-    local version pip packages package package_info list=list flags=--disable-pip-version-check site_prefix
+    local version pip packages package package_info flags=--disable-pip-version-check site_prefix
 
     for version in $(cd "$prefix/bin" && ls -1 | grep -E '^python[0-9.]+$' | grep -oE '[0-9.]+$'); do
         pip=pip$version
 
-        if ! is-macos; then
-            list="$list --user"
-        fi
-
         shopt -s nullglob
-            if is-macos; then
-                which "$pip" > /dev/null || continue
-                site_prefix="$prefix"
-            else
-                pip=/usr/bin/$pip
-                site_prefix="$(python$version -m site --user-site)"
-            fi
+            which "$pip" > /dev/null || continue
+            site_prefix="$(python$version -m site --user-site)"
 
             log "Uninstalling Python $version packages..."
-            packages="$($pip $list $flags --format=freeze)"
+            packages="$($pip list $flags --user --format=freeze)"
 
             for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
                 if is-macos; then
@@ -280,10 +272,13 @@ uninstall-python-packages() {
                 grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
 
                 log "Uninstalling $package..."
-                $pip uninstall $flags -y "$package" ||:
+                $pip uninstall $flags --break-system-packages -y "$package" ||:
             done
         shopt -u nullglob
     done
+
+    log "Deleting ~/Library/Python..."
+    rm -rf ~/Library/Python
 }
 
 cleanup-caches() {
@@ -297,7 +292,9 @@ cleanup-caches() {
 
         if which cargo-cache > /dev/null; then
             cargo cache --keep-duplicate-crates 0
-            cargo cache --autoclean-expensive
+            if [ -n "$expensive_cleanup" ]; then
+                cargo cache --autoclean-expensive
+            fi
         fi
 
         if which go > /dev/null; then
@@ -359,6 +356,7 @@ if [ "$(whoami)" = root ]; then
 fi
 
 full_installation=yes
+expensive_cleanup=yes
 
 if is-macos; then
     prefix=/opt/homebrew
@@ -381,6 +379,7 @@ case $1 in
         ;;
 
     "uninstall")
+        expensive_cleanup=""
         question-user "uninstall all packages" && uninstall-all
         ;;
 
