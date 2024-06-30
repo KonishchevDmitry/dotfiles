@@ -1,0 +1,6 @@
+# Enables simulation mode
+#--get-filename --get-format
+
+--format bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/best[vcodec^=avc1]
+--output '%(upload_date)s - %(title)s.%(ext)s'
+--ignore-errors
