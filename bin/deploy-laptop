@@ -236,7 +236,7 @@ install-python-packages() {
         pipx install ipython TxtStyle
         pipx inject ipython pyyaml
 
-        # Consider switching to https://github.com/yt-dlp/yt-dlp
+        pipx install 'yt-dlp[default,curl-cffi]'
         pipx install https://github.com/ytdl-org/youtube-dl/archive/master.zip
     fi
 
