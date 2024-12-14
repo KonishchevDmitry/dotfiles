@@ -1,5 +1,7 @@
 set hidden
-set autoquit
+set tabstop 4
+set incsearch
+set selmode dir
 
 cmd open ${{
     case "$(file --mime-type --dereference --brief "$f")" in
