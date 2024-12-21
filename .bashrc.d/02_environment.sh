@@ -6,10 +6,7 @@ export EDITOR="$(which vim)"
 if [ "$(uname)" = Darwin ]; then
     # To eliminate problems with locale over ssh
     export LANG=en_US.UTF-8
-    export LC_ALL=en_US.UTF-8
-
-    export CFLAGS+=-I/opt/homebrew/opt/openssl/include
-    export LDFLAGS+=-L/opt/homebrew/opt/openssl/lib
+    export LC_TIME=en_GB.UTF-8
 
     # Fix SHELL variable which is set by the OS
     if [[ -n "$SHELL" && -n "$BASH" && "$SHELL" != "$BASH" ]]; then
