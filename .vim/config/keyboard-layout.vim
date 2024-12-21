@@ -42,8 +42,8 @@ if has('keymap')
     au WinEnter * :call MyKeyMapHighlight()
 
     " Keyboard mapping switching by <C-F>
-    cmap <silent> <C-F> <C-^>
-    imap <silent> <C-F> <C-^>X<Esc>:call MyKeyMapHighlight()<CR>a<C-H>
-    nmap <silent> <C-F> a<C-^><Esc>:call MyKeyMapHighlight()<CR>
-    vmap <silent> <C-F> <Esc>a<C-^><Esc>:call MyKeyMapHighlight()<CR>gv
+    "cmap <silent> <C-F> <C-^>
+    "imap <silent> <C-F> <C-^>X<Esc>:call MyKeyMapHighlight()<CR>a<C-H>
+    "nmap <silent> <C-F> a<C-^><Esc>:call MyKeyMapHighlight()<CR>
+    "vmap <silent> <C-F> <Esc>a<C-^><Esc>:call MyKeyMapHighlight()<CR>gv
 endif
