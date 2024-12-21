@@ -151,7 +151,7 @@ install-brew-packages() {(
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    go_version=1.21
+    go_version=1.22
     brew install "go@$go_version" && brew link --overwrite "go@$go_version"
     brew install python pipx
 
@@ -162,6 +162,7 @@ install-brew-packages() {(
     brew install --cask macfuse
     brew tap yandex/arc "$arc_tap" && brew install arc-launcher
 
+    brew install --cask wireshark
     brew install --cask --no-quarantine wine-stable
 
     brew install winetricks
@@ -233,6 +234,9 @@ install-python-packages() {
 
     pip3 $install --disable-pip-version-check --upgrade pip
     if [ -n "$full_installation" ]; then
+        pipx reinstall-all
+        pipx upgrade-all
+
         pipx install ipython TxtStyle
         pipx inject ipython pyyaml
 
