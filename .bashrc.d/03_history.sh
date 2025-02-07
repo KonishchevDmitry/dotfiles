@@ -1,10 +1,13 @@
 # Configure shell history
 
 # The number of commands to remember in the command history
-HISTSIZE=10000
+HISTSIZE=100000
 
 # The maximum number of lines contained in the history file
-HISTFILESIZE=10000
+#HISTFILESIZE=10000
+
+# Store and show command timestamp
+HISTTIMEFORMAT="%Y.%m.%d %H:%M:%S "
 
 # Do not write the following commands to the history
 HISTIGNORE="cd"
