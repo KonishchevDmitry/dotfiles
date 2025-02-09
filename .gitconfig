@@ -13,7 +13,7 @@
 
 [alias]
     br = branch
-    ci = commit -a
+    ca = commit -a
     co = checkout
     gitk = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
     gr = grep -n --color --extended-regexp
