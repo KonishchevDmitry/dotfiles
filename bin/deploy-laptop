@@ -162,6 +162,13 @@ install-brew-packages() {(
     brew install --cask macfuse
     brew tap yandex/arc "$arc_tap" && brew install arc-launcher
 
+    local arc_completion_path=~/.bashrc.d/91_completion-arc.sh
+    if [ -e "$arc_completion_path"  ]; then
+        arc completion bash > "$arc_completion_path"
+    else
+        log "$arc_completion_path doesn't exist. Don't generate the completion rules."
+    fi
+
     brew install --cask wireshark
     brew install --cask --no-quarantine wine-stable
 
