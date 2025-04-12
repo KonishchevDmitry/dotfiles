@@ -12,6 +12,8 @@ if [ "$(uname)" = Darwin ]; then
     if [[ -n "$SHELL" && -n "$BASH" && "$SHELL" != "$BASH" ]]; then
         SHELL="$BASH"
     fi
+
+    [ -d /opt/homebrew/opt/openjdk/bin ] && PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
 elif [ -f /etc/debian_version ]; then
     # Debian package building
     export DEBEMAIL='konishchev@gmail.com'
