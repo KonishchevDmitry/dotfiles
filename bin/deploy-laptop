@@ -151,9 +151,7 @@ install-brew-packages() {(
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    go_version=1.22
-    brew install "go@$go_version" && brew link --overwrite "go@$go_version"
-    brew install python pipx
+    brew install go python pipx
 
     # Development libraries
     brew install libxml2 openssl
