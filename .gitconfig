@@ -1,48 +1,47 @@
 [core]
-    editor = vim
+editor = vim
 
 [user]
-    name = Dmitry Konishchev
-    useConfigOnly = true
+name = Dmitry Konishchev
+useConfigOnly = true
 
 [color]
-    diff = auto
-    status = auto
-    branch = auto
-    interactive = auto
+diff = auto
+status = auto
+branch = auto
+interactive = auto
 
 [alias]
-    br = branch
-    ca = commit -a
-    co = checkout
-    gitk = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
-    gr = grep -n --color --extended-regexp
-    me = merge --no-commit
-    mt = mergetool --no-prompt
-    pa = push --all
-    pt = push --tags
-    rb = rebase --committer-date-is-author-date
-    st = status
-    stt = status --untracked=no
-    su = submodule update --init --recursive
+br = branch
+ca = commit -a
+co = checkout
+gitk = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%Creset' --abbrev-commit --date=relative --all
+gr = grep -n --color --extended-regexp
+me = merge --no-commit
+mt = mergetool --no-prompt
+pa = push --all
+pt = push --tags
+rb = rebase --committer-date-is-author-date
+st = status
+stt = status --untracked=no
+su = submodule update --init --recursive
 
 [pull]
-    ff = only
+ff = only
 
 [push]
-    default = current
+default = current
 
 [merge]
-    tool = my
+tool = my
 
 [mergetool]
-    prompt = false
-    keepBackup = false
-    keepTemporaries = false
+prompt = false
+keepBackup = false
+keepTemporaries = false
 
 [mergetool "my"]
-    cmd = "~/.local/libexec/git-merge-tool \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\""
+cmd = "~/.local/libexec/git-merge-tool \"$BASE\" \"$LOCAL\" \"$REMOTE\" \"$MERGED\""
 
-[url "git@bb.yandexcloud.net:"]
-    insteadOf = https://bb.yandex-team.ru/scm
-    insteadOf = https://bb.yandexcloud.net/scm
+[include]
+path = ~/job/gitconfig
