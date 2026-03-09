@@ -168,16 +168,11 @@ install-brew-packages() {(
     fi
 
     brew install --cask wireshark
-    brew install --cask --no-quarantine wine-stable
 
-    brew install winetricks
-    winetricks settings fontsmooth=gray
-    winetricks settings mackeyremap=both
-
-    # Russian tax program dependencies
-    winetricks msxml4
-    winetricks vcrun6
-    winetricks wsh56
+    # brew install --cask --no-quarantine wine-stable
+    # brew install winetricks
+    # winetricks settings fontsmooth=gray
+    # winetricks settings mackeyremap=both
 )}
 
 post-install-brew-packages() {
