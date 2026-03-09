@@ -84,7 +84,7 @@ install-brew() {
 update-brew() {
     log "Updating Homebrew..."
 
-    if ! curl -fL --connect-timeout 1 "$arc_tap" > /dev/null 2>&1; then
+    if ! curl -fL --connect-timeout 1 "$arc_tap/info/refs" > /dev/null 2>&1; then
         die "Please connect to the Intranet."
     fi
 
@@ -377,7 +377,7 @@ full_installation=yes
 
 if is-macos; then
     prefix=/opt/homebrew
-    arc_tap=https://arc-vcs.yandex-team.ru/homebrew-tap
+    arc_tap=https://arc.yandex.net/arcadia/homebrew-devtools
     sanitize-environment
 fi
 
