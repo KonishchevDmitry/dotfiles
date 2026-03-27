@@ -18,10 +18,7 @@ install-all() {
 
     install-rust-packages
     install-python-packages
-
-    if [ -n "$full_installation" ]; then
-        cleanup-caches
-    fi
+    cleanup-caches
 
     log "Installation finished successfully."
 }
@@ -39,10 +36,6 @@ uninstall-all() {
     fi
 
     log "Uninstallation finished successfully."
-
-    if ! is-macos; then
-        check-directory "$(python3 -m site --user-site)"
-    fi
 }
 
 upgrade-all() {
@@ -137,21 +130,21 @@ install-brew-packages() {(
     # Homebrew's bash in contrast to system's bash supports completion
     #
     # Don't forget to set '$prefix/bin/bash -l' as a shell in the terminal emulator
-    brew install bash bash-completion pip-completion
+    brew install bash bash-completion
 
     brew install gnu-getopt
     [ -h "$prefix/bin/getopt" ] || ln -s "$prefix/opt/gnu-getopt/bin/getopt" "$prefix/bin/getopt"
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible ffmpeg git gmailctl gnupg htop httpie hugo jq lf mosh ncdu parallel podman pstree ripgrep rsync \
+    brew install ansible@12 ffmpeg git gmailctl gnupg htop httpie hugo jq lf mosh ncdu parallel podman pstree ripgrep rsync \
         shadowsocks-rust socat sslscan syncthing telnet terminal-notifier terraform tmux tree vim watch yq
 
     brew install mutt
     sudo chgrp mail "$prefix/opt/mutt/bin/mutt_dotlock"
     sudo chmod g+s "$prefix/opt/mutt/bin/mutt_dotlock"
 
-    brew install go python pipx
+    brew install go pipx uv
 
     # Development libraries
     brew install libxml2 openssl
@@ -206,14 +199,8 @@ install-rust-packages() {
     (
         set -x
         cargo install cargo-update vsb
+        cargo install cargo-cache cargo-edit cargo-release investments
     )
-
-    if [ -n "$full_installation" ]; then
-        (
-            set -x
-            cargo install cargo-cache cargo-edit cargo-release investments
-        )
-    fi
 }
 
 uninstall-rust-packages() {
@@ -229,71 +216,18 @@ uninstall-rust-packages() {
 install-python-packages() {
     log "Installing Python packages..."
 
-    local script script_type requirements
-    local install="install --user --break-system-packages"
+    pipx reinstall-all
+    pipx upgrade-all
 
-    pip3 $install --disable-pip-version-check --upgrade pip
-    if [ -n "$full_installation" ]; then
-        pipx reinstall-all
-        pipx upgrade-all
+    pipx install ipython TxtStyle
+    pipx inject ipython pyyaml
 
-        pipx install ipython TxtStyle
-        pipx inject ipython pyyaml
-
-        pipx install 'yt-dlp[default,curl-cffi]'
-        pipx install https://github.com/ytdl-org/youtube-dl/archive/master.zip
-    fi
-
-    shopt -s nullglob
-        for script in ~/bin/* ~/.local/bin/* ~/job/bin/*; do
-            script_type="$(file --mime-type --brief "$script")"
-            [ "$script_type" = 'text/x-python' -o "$script_type" = 'text/x-script.python' ] || continue
-
-            requirements="$(get-script-requirements "$script")"
-            [ -z "$requirements" ] || pip3 $install -U $requirements
-        done
-    shopt -u nullglob
+    pipx install 'yt-dlp[default,curl-cffi]'
+    pipx install https://github.com/ytdl-org/youtube-dl/archive/master.zip
 }
 
 uninstall-python-packages() {
-    local version pip packages package package_info flags=--disable-pip-version-check site_prefix
-
-    for version in $(cd "$prefix/bin" && ls -1 | grep -E '^python[0-9.]+$' | grep -oE '[0-9.]+$'); do
-        pip=pip$version
-
-        shopt -s nullglob
-            which "$pip" > /dev/null || continue
-            site_prefix="$(python$version -m site --user-site)"
-
-            log "Uninstalling Python $version packages..."
-            packages="$($pip list $flags --user --format=freeze)"
-
-            for package in $(awk -F == '{ print $1 }' <<< "$packages"); do
-                if is-macos; then
-                    # Don't uninstall pip and setuptools to not break pip
-                    if [[ "$package" == pip || "$package" == setuptools ]]; then
-                        continue
-                    fi
-
-                    # Skip distutils installed packages that can't be uninstalled
-                    if [[ "$package" == gpg || "$package" == PyGObject ]]; then
-                        continue
-                    fi
-                fi
-
-                package_info="$($pip show $flags "$package")"
-
-                # Filter out system packages
-                grep -qE "^Location: $site_prefix" <<< "$package_info" || continue
-
-                log "Uninstalling $package..."
-                $pip uninstall $flags --break-system-packages -y "$package" ||:
-            done
-        shopt -u nullglob
-    done
-
-    log "Deleting ~/Library/Python..."
-    rm -rf ~/Library/Python
+    # For now rely on `uv cache clean` and `pipx reinstall-all` here
 }
 
 cleanup-caches() {
@@ -312,6 +246,10 @@ cleanup-caches() {
 
         if which go > /dev/null; then
             go clean -cache -modcache -testcache -fuzzcache
+        fi
+
+        if which uv > /dev/null; then
+            uv cache clean
         fi
     )
 }
@@ -368,8 +306,6 @@ if [ "$(whoami)" = root ]; then
     die "The script must be run from user."
 fi
 
-full_installation=yes
-
 if is-macos; then
     prefix=/opt/homebrew
     arc_tap=https://arc.yandex.net/arcadia/homebrew-devtools
@@ -379,11 +315,6 @@ fi
 case $1 in
     "install")
         question-user "install all packages" && install-all
-        ;;
-
-    "install-minimal")
-        full_installation=""
-        question-user "install minimal packages" && install-all
         ;;
 
     "upgrade")
