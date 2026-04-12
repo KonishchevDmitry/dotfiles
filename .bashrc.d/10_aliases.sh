@@ -47,9 +47,14 @@ notify () {
     if [ "$(uname)" = Darwin ]; then
         terminal-notifier -title "$status" -message "$message"
     elif [ -n "$TMUX" ]; then
+        # We should use non-home-based renderer to be able to send notification from `sudo -i`, but use home-based on
+        # other installations where it's not available.
+        local renderer_path=/usr/local/libexec/render-tmux-popup
+        [ -e "$renderer_path" ] || renderer_path=~/.local/libexec/render-tmux-popup
+
         # -S: to be able to notify from `sudo -i`
         # -h: two lines for the border and one line for less status line which can't be hidden
-        tmux -S "${TMUX%%,*}" display-popup -h 4 -T "$status" ~/.local/libexec/render-tmux-popup "$message"
+        tmux -S "${TMUX%%,*}" display-popup -h 4 -T "$status" "$renderer_path" "$message"
     else
         echo "Notification aren't supported in current configuration." >&2
     fi
