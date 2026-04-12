@@ -33,17 +33,26 @@ server() {
     fi
 }
 
-if [ "$(uname)" = Darwin ]; then
-    # OS X notifications from terminal
-    #
-    # Usage:
-    # $ shell_command; notify
-    notify () {
-        local rc=$?
-        local status
-        [ "$rc" -eq 0 ] && status='Success:' || status='Failure:'
-        local message="$(history | sed -nE '$ s/^[[:space:]]*[0-9]+[[:space:]]*(.*)[[:space:]]*;[[:space:]]*notify[[:space:]]*$/\1/ p')"
-        terminal-notifier -message "$status $message"
-        return $rc
-    }
-fi
+# Usage:
+# $ shell_command; notify
+notify () {
+    local rc=$?
+
+    local status
+    local message
+
+    [ "$rc" -eq 0 ] && status=Success || message=Failure
+    message="$(history 1 | sed -E 's/^[[:space:]]*[0-9]+([[:space:]]+[0-9]{4}\.[0-9]{2}\.[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})?[[:space:]]+(.+?)[[:space:]]*;[[:space:]]*notify[[:space:]]*$/\2/')"
+
+    if [ "$(uname)" = Darwin ]; then
+        terminal-notifier -title "$status" -message "$message"
+    elif [ -n "$TMUX" ]; then
+        # -S: to be able to notify from `sudo -i`
+        # -h: two lines for the border and one line for less status line which can't be hidden
+        tmux -S "${TMUX%%,*}" display-popup -h 4 -T "$status" ~/.local/libexec/render-tmux-popup "$message"
+    else
+        echo "Notification aren't supported in current configuration." >&2
+    fi
+
+    return $rc
+}

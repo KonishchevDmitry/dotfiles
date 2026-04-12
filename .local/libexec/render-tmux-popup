@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+#
+# Renders contents of tmux popup
+#
+
+set -eu
+
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 MESSAGE" >&2
+    exit 1
+fi
+
+exec printf "%s" "$1" | less --quiet --tilde --quit-if-one-screen
