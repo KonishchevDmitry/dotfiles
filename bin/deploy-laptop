@@ -137,7 +137,7 @@ install-brew-packages() {(
 
     brew install coreutils diffutils findutils gawk gnu-sed gnu-tar gpatch grep less make
 
-    brew install ansible@12 ffmpeg git gmailctl gnupg htop httpie hugo jq lf mosh ncdu parallel podman pstree ripgrep rsync \
+    brew install ansible@12 ffmpeg git gmailctl gnupg htop httpie jq lf mosh ncdu parallel podman pstree ripgrep rsync \
         shadowsocks-rust socat sslscan syncthing telnet terminal-notifier terraform tmux tree vim watch yq
 
     brew install mutt
@@ -227,7 +227,7 @@ install-python-packages() {
 }
 
 uninstall-python-packages() {
-    # For now rely on `uv cache clean` and `pipx reinstall-all` here
+    : # For now rely on `uv cache clean` and `pipx reinstall-all` here
 }
 
 cleanup-caches() {
