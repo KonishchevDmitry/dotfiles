@@ -150,6 +150,8 @@ install-brew-packages() {(
     brew install libxml2 openssl
     brew link --force openssl
 
+    brew tap messense/macos-cross-toolchains && brew install x86_64-unknown-linux-gnu
+
     brew install --cask macfuse
     brew tap yandex/arc "$arc_tap" && brew install arc-launcher
 
